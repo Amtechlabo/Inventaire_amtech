@@ -4,15 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>stock.elec</title>
-
-<!-- ============================================================
-  CONFIGURATION FIREBASE — À REMPLIR UNE SEULE FOIS
-  1. Va sur https://console.firebase.google.com
-  2. Crée un projet (ex: "labo-stock")
-  3. Ajoute une app Web (icône </>)
-  4. Copie les valeurs de firebaseConfig ci-dessous
-  5. Dans Firestore Database → Créer une base → Mode test
-============================================================ -->
 <script>
   const FIREBASE_CONFIG = {
     apiKey:            "AIzaSyCLYzxJTHssT-HG7LFLbvDDcugXqbDnoiA",
@@ -22,9 +13,7 @@
     messagingSenderId: "902045233030",
     appId:             "1:902045233030:web:fd1f92493d506fc25c0607"
   };
-  const APP_PASSWORD = null;
 </script>
-
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -35,13 +24,12 @@
   --font:'Space Grotesk',sans-serif;--mono:'IBM Plex Mono',monospace;
 }
 html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;font-size:14px}
-.app{max-width:920px;margin:0 auto;padding:1rem}
+.app{max-width:960px;margin:0 auto;padding:1rem}
 .header{display:flex;align-items:center;justify-content:space-between;padding:1rem 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
 .logo{font-family:var(--mono);font-size:20px;color:var(--accent);letter-spacing:-0.5px}
 .logo span{color:var(--muted)}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-left:8px;transition:background .3s}
-.sync-dot.ok{background:var(--accent)}
-.sync-dot.error{background:var(--danger)}
+.sync-dot.ok{background:var(--accent)}.sync-dot.error{background:var(--danger)}
 .views{display:flex;gap:6px;flex-wrap:wrap}
 .btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;transition:all .15s}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
@@ -49,11 +37,13 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-hei
 .btn-danger:hover{border-color:var(--danger);color:var(--danger)}
 .btn-primary{background:rgba(74,222,128,.15);border-color:var(--accent);color:var(--accent)}
 .btn-primary:hover{background:rgba(74,222,128,.25)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
-.location-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;position:relative}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.location-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s}
 .location-card:hover{border-color:var(--accent2);transform:translateY(-2px)}
-.loc-icon{font-size:30px;margin-bottom:8px}
-.loc-name{font-weight:600;font-size:15px;margin-bottom:4px}
+.loc-photo{width:100%;height:120px;object-fit:cover;display:block}
+.loc-photo-placeholder{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:var(--bg3);font-size:38px}
+.loc-body{padding:.85rem}
+.loc-name{font-weight:600;font-size:15px;margin-bottom:3px}
 .loc-count{font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:6px}
 .loc-actions{display:flex;gap:6px;margin-top:10px}
 .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono);background:rgba(34,211,238,.1);color:var(--accent2);border:1px solid rgba(34,211,238,.2)}
@@ -61,7 +51,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-hei
 .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
 .panel-title{font-size:16px;font-weight:600}
 input,select,textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font);font-size:13px;width:100%;outline:none;transition:border .15s}
-input:focus,select:focus{border-color:var(--accent)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 select option{background:var(--bg3)}
 .form-row{display:flex;gap:10px;margin-bottom:10px}
 .form-col{flex:1;display:flex;flex-direction:column;gap:5px}
@@ -71,15 +61,14 @@ label{font-size:12px;color:var(--muted);font-weight:500}
 .item-name{font-weight:500;font-size:14px}
 .item-meta{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
 .item-qty{font-family:var(--mono);font-size:14px;color:var(--accent);min-width:36px;text-align:center}
-.qty-ctrl{display:flex;align-items:center;gap:6px}
+.qty-ctrl{display:flex;align-items:center;gap:5px}
 .qty-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .1s;line-height:1}
 .qty-btn:hover{border-color:var(--accent);color:var(--accent)}
 .badge{padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono)}
 .badge-low{background:rgba(248,113,113,.1);color:var(--danger);border:1px solid rgba(248,113,113,.2)}
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;max-width:440px;max-height:90vh;overflow-y:auto}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;overflow-y:auto}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;max-width:500px;max-height:92vh;overflow-y:auto}
 .modal-title{font-size:18px;font-weight:600;margin-bottom:1.25rem}
-.qr-container{background:#fff;padding:16px;border-radius:8px;display:flex;justify-content:center;margin:1rem 0}
 .search-bar{position:relative;margin-bottom:1rem}
 .search-bar input{padding-left:36px}
 .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
@@ -97,195 +86,109 @@ label{font-size:12px;color:var(--muted);font-weight:500}
 @keyframes spin{to{transform:rotate(360deg)}}
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;z-index:200;animation:fadeIn .2s;border-left:3px solid var(--accent)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-/* Login screen */
-.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:1rem}
-.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:320px;text-align:center}
-.login-box .logo{font-size:28px;margin-bottom:1.5rem;display:block}
-
-/* Config screen */
-.config-screen{max-width:600px;margin:2rem auto}
-.config-screen pre{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:var(--mono);font-size:12px;color:var(--accent2);overflow-x:auto;margin:1rem 0;line-height:1.6}
-.step{display:flex;gap:12px;margin-bottom:1rem;align-items:flex-start}
-.step-num{min-width:24px;height:24px;background:rgba(74,222,128,.15);border:1px solid var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--accent)}
-.step-text{flex:1;font-size:13px;color:var(--muted);line-height:1.6}
-.step-text b{color:var(--text)}
+.photo-zone{border:2px dashed var(--border);border-radius:10px;padding:1.25rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.photo-zone:hover{border-color:var(--accent);background:rgba(74,222,128,.04)}
+.photo-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-preview{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:block}
+.photo-wrapper{position:relative;width:100%;margin-bottom:1rem}
+.photo-wrapper img{width:100%;border-radius:10px;display:block;max-height:300px;object-fit:cover}
+.pin{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);color:var(--bg);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transform:translate(-50%,-50%);transition:transform .15s;z-index:2;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.pin:hover{transform:translate(-50%,-50%) scale(1.25)}
+.search-thumb{width:52px;height:52px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer}
+.search-thumb-placeholder{width:52px;height:52px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;cursor:pointer}
+.pin-indicator{font-family:var(--mono);font-size:12px;min-width:20px;cursor:pointer;transition:color .15s}
+.pin-indicator.placed{color:var(--accent)}
+.pin-indicator.empty{color:var(--muted)}
+.pin-indicator:hover{color:var(--accent2)}
 @media(max-width:600px){
   .form-row{flex-direction:column}
   .header{flex-direction:column;align-items:flex-start}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
 }
 </style>
 </head>
 <body>
-
 <div class="app" id="root">
   <div style="text-align:center;padding:4rem"><span class="spinner"></span> Chargement...</div>
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore, doc, collection, setDoc, deleteDoc,
-  onSnapshot, getDoc, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, collection, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function uid(){ return Math.random().toString(36).slice(2,9) }
+const uid = () => Math.random().toString(36).slice(2,9);
+const icons = {armoire:'🗄️',étagère:'📚',tiroir:'🗃️',carton:'📦',établi:'🔧',rack:'🖥️',caisse:'🧰',autre:'📫'};
 
-function toast(msg, dur=2500){
+function toast(msg, dur=2800){
   const t=document.createElement('div');
-  t.className='toast'; t.textContent=msg;
+  t.className='toast';t.textContent=msg;
   document.body.appendChild(t);
-  setTimeout(()=>t.remove(), dur);
+  setTimeout(()=>t.remove(),dur);
 }
 
-const icons={armoire:'🗄️',étagère:'📚',frigo:'❄️',congélateur:'🧊',tiroir:'🗃️',paillasse:'🔬',autre:'📦'};
+let db_fs, storage;
+let locations=[];
+let currentView='locations';
+let selectedLoc=null;
 
-// ── Config check ──────────────────────────────────────────────────────────────
-const isConfigured = FIREBASE_CONFIG.apiKey !== "COLLE_ICI";
-
-// ── State ─────────────────────────────────────────────────────────────────────
-let db_fs = null;
-let locations = [];   // [{id, name, icon, type, items:[...]}]
-let unsubscribers = [];
-let currentView = 'locations';
-let selectedLoc = null;
-let authed = false;
-
-// ── Firebase init ─────────────────────────────────────────────────────────────
 function initFirebase(){
-  const app = initializeApp(FIREBASE_CONFIG);
-  db_fs = getFirestore(app);
-  startSync();
-}
-
-// ── Real-time sync ────────────────────────────────────────────────────────────
-function startSync(){
+  const app=initializeApp(FIREBASE_CONFIG);
+  db_fs=getFirestore(app);
+  storage=getStorage(app);
   setSyncStatus('loading');
-  const locCol = collection(db_fs, 'locations');
-  const unsub = onSnapshot(locCol, snap => {
-    const newLocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    newLocs.sort((a,b)=>(a.order||0)-(b.order||0)||(a.name||'').localeCompare(b.name||''));
-    locations = newLocs;
+  onSnapshot(collection(db_fs,'locations'),snap=>{
+    locations=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));
     setSyncStatus('ok');
     render();
-  }, err => {
-    console.error(err);
-    setSyncStatus('error');
-  });
-  unsubscribers.push(unsub);
+  },()=>setSyncStatus('error'));
 }
 
 function setSyncStatus(s){
-  const dot = document.getElementById('sync-dot');
-  if(!dot) return;
-  dot.className = 'sync-dot ' + s;
-  dot.title = s==='ok'?'Synchronisé':s==='error'?'Erreur de connexion':'Connexion...';
+  const d=document.getElementById('sync-dot');
+  if(d){d.className='sync-dot '+s;d.title=s==='ok'?'Synchronisé':s==='error'?'Erreur':'Connexion...';}
 }
 
-// ── Firestore writes ──────────────────────────────────────────────────────────
-async function saveLoc(loc){
-  await setDoc(doc(db_fs, 'locations', loc.id), loc);
-}
-async function deleteLoc(id){
-  await deleteDoc(doc(db_fs, 'locations', id));
+async function saveLoc(loc){await setDoc(doc(db_fs,'locations',loc.id),loc);}
+async function removeLoc(id){await deleteDoc(doc(db_fs,'locations',id));}
+
+async function uploadPhoto(locId,file){
+  toast('📤 Upload photo...');
+  const ext=file.name.split('.').pop()||'jpg';
+  const ref=sRef(storage,`locations/${locId}/photo_${Date.now()}.${ext}`);
+  const snap=await uploadBytes(ref,file);
+  return await getDownloadURL(snap.ref);
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
-function checkPassword(){
-  const val = document.getElementById('pwd-input').value;
-  if(val === APP_PASSWORD){
-    authed = true;
-    sessionStorage.setItem('labo_auth','1');
-    render();
-  } else {
-    document.getElementById('pwd-error').textContent = 'Mot de passe incorrect';
-  }
-}
-
-// ── Render ────────────────────────────────────────────────────────────────────
-function showView(v){
-  currentView=v;
-  document.querySelectorAll('.views .btn').forEach(b=>{
-    const map={locations:'empl',search:'rech',qrlist:'qr'};
-    b.classList.toggle('active', b.dataset.view===v);
-  });
-  render();
-}
+function showView(v){currentView=v;render();}
 
 function render(){
-  const root = document.getElementById('root');
-  if(!isConfigured){ root.innerHTML = renderConfig(); return; }
-  if(!authed){ root.innerHTML = renderLogin(); return; }
-  root.innerHTML = `
+  const root=document.getElementById('root');
+  root.innerHTML=`
     <div class="header">
       <div class="logo">stock<span>.</span>elec <span class="sync-dot" id="sync-dot"></span></div>
       <div class="views">
-        <button class="btn ${currentView==='locations'?'active':''}" data-view="locations" onclick="showView('locations')">📦 Emplacements</button>
-        <button class="btn ${currentView==='search'?'active':''}" data-view="search" onclick="showView('search')">🔍 Recherche</button>
-        <button class="btn ${currentView==='qrlist'?'active':''}" data-view="qrlist" onclick="showView('qrlist')">📷 QR Codes</button>
+        <button class="btn ${currentView==='locations'?'active':''}" onclick="showView('locations')">📦 Emplacements</button>
+        <button class="btn ${currentView==='search'?'active':''}" onclick="showView('search')">🔍 Recherche</button>
+        <button class="btn ${currentView==='qrlist'?'active':''}" onclick="showView('qrlist')">📷 QR Codes</button>
       </div>
     </div>
-    <div id="view-content">${renderView()}</div>
-  `;
-  setSyncStatus(locations.length>0?'ok':'loading');
+    <div id="vc">${renderView()}</div>`;
+  setSyncStatus('ok');
 }
 
 function renderView(){
   if(currentView==='locations') return renderLocations();
-  if(currentView==='items') return renderItems();
-  if(currentView==='search') return renderSearch();
-  if(currentView==='qrlist') return renderQRList();
+  if(currentView==='items')     return renderItems();
+  if(currentView==='search')    return renderSearch();
+  if(currentView==='qrlist')    return renderQRList();
   return '';
 }
 
-// ── Login ─────────────────────────────────────────────────────────────────────
-function renderLogin(){
-  return `
-  <div class="login-screen">
-    <div class="login-box">
-      <span class="logo">⚡ stock.elec</span>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:1.5rem">Accès protégé</p>
-      <input id="pwd-input" type="password" placeholder="Mot de passe" style="margin-bottom:10px" onkeydown="if(event.key==='Enter')checkPassword()">
-      <div id="pwd-error" style="color:var(--danger);font-size:12px;min-height:18px;margin-bottom:10px"></div>
-      <button class="btn btn-primary" style="width:100%" onclick="checkPassword()">Accéder →</button>
-    </div>
-  </div>`;
-}
-
-// ── Config guide ──────────────────────────────────────────────────────────────
-function renderConfig(){
-  return `
-  <div class="config-screen">
-    <div style="margin-bottom:2rem">
-      <div class="logo" style="font-size:24px;margin-bottom:0.5rem">stock<span>.</span>elec</div>
-      <p style="color:var(--muted)">Configuration Firebase requise</p>
-    </div>
-    <div class="panel">
-      <div class="panel-title" style="margin-bottom:1.25rem">⚙️ Configuration en 5 minutes</div>
-      <div class="step"><div class="step-num">1</div><div class="step-text">Va sur <b><a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent2)">console.firebase.google.com</a></b> et connecte-toi avec ton compte Google.</div></div>
-      <div class="step"><div class="step-num">2</div><div class="step-text">Clique <b>Ajouter un projet</b> → nomme-le <b>labo-stock</b> → Créer.</div></div>
-      <div class="step"><div class="step-num">3</div><div class="step-text">Dans le projet, clique l'icône <b>&lt;/&gt;</b> (Web) → enregistre l'app → copie le bloc <code>firebaseConfig</code>.</div></div>
-      <div class="step"><div class="step-num">4</div><div class="step-text">Menu gauche → <b>Build → Firestore Database</b> → Créer une base → choisir <b>Mode test</b> → Activer.</div></div>
-      <div class="step"><div class="step-num">5</div><div class="step-text">Ouvre ce fichier HTML dans un éditeur de texte et remplace les <b>COLLE_ICI</b> dans <code>FIREBASE_CONFIG</code> par tes vraies valeurs.</div></div>
-      <pre>const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSy...",
-  authDomain:        "labo-stock.firebaseapp.com",
-  projectId:         "labo-stock",
-  storageBucket:     "labo-stock.appspot.com",
-  messagingSenderId: "123456789",
-  appId:             "1:123456:web:abcdef"
-};</pre>
-      <div class="step"><div class="step-num">6</div><div class="step-text">Change aussi <b>APP_PASSWORD</b> pour ton mot de passe perso, puis ouvre le fichier dans le navigateur. C'est tout !</div></div>
-    </div>
-  </div>`;
-}
-
-// ── Locations view ────────────────────────────────────────────────────────────
 function renderLocations(){
-  const totalRefs = locations.reduce((s,l)=>s+(l.items||[]).length,0);
-  const totalQty  = locations.reduce((s,l)=>s+(l.items||[]).reduce((ss,i)=>ss+(i.qty||0),0),0);
-  const lowCount  = locations.reduce((s,l)=>s+(l.items||[]).filter(i=>i.minQty&&i.qty<=i.minQty).length,0);
+  const totalRefs=locations.reduce((s,l)=>s+(l.items||[]).length,0);
+  const totalQty=locations.reduce((s,l)=>s+(l.items||[]).reduce((ss,i)=>ss+(i.qty||0),0),0);
+  const lowCount=locations.reduce((s,l)=>s+(l.items||[]).filter(i=>i.minQty&&i.qty<=i.minQty).length,0);
   return `
   <div class="stats-bar">
     <div class="stat"><div class="stat-val">${locations.length}</div><div class="stat-label">Emplacements</div></div>
@@ -299,27 +202,31 @@ function renderLocations(){
   <div class="grid">
     ${locations.map(l=>`
     <div class="location-card" onclick="openLocation('${l.id}')">
-      <div class="loc-icon">${l.icon}</div>
-      <div class="loc-name">${l.name}</div>
-      <div class="loc-count">${(l.items||[]).length} référence(s)</div>
-      <span class="tag">${l.type}</span>
-      <div class="loc-actions" onclick="event.stopPropagation()">
-        <button class="btn" style="flex:1;font-size:12px;padding:5px 8px" onclick="openQR('${l.id}')">QR Code</button>
-        <button class="btn btn-danger" style="font-size:12px;padding:5px 8px" onclick="confirmDeleteLoc('${l.id}')">✕</button>
+      ${l.photoURL
+        ?`<img class="loc-photo" src="${l.photoURL}" loading="lazy">`
+        :`<div class="loc-photo-placeholder">${l.icon}</div>`}
+      <div class="loc-body">
+        <div class="loc-name">${l.name}</div>
+        <div class="loc-count">${(l.items||[]).length} article(s)${l.photoURL?' · 📷':''}</div>
+        <span class="tag">${l.type}</span>
+        <div class="loc-actions" onclick="event.stopPropagation()">
+          <button class="btn" style="flex:1;font-size:12px;padding:5px 8px" onclick="openQR('${l.id}')">QR</button>
+          <button class="btn btn-danger" style="font-size:12px;padding:5px 8px" onclick="confirmDeleteLoc('${l.id}')">✕</button>
+        </div>
       </div>
     </div>`).join('')}
   </div>
   ${locations.length===0?'<div class="empty"><div class="big">📦</div><div>Aucun emplacement.<br>Créez votre premier stockage !</div></div>':''}`;
 }
 
-// ── Items view ────────────────────────────────────────────────────────────────
-function openLocation(id){ selectedLoc=id; currentView='items'; render(); }
+function openLocation(id){selectedLoc=id;currentView='items';render();}
 
 function renderItems(){
-  const loc = locations.find(l=>l.id===selectedLoc);
-  if(!loc){ currentView='locations'; return renderLocations(); }
-  const items = loc.items||[];
-  const low = items.filter(i=>i.minQty&&i.qty<=i.minQty);
+  const loc=locations.find(l=>l.id===selectedLoc);
+  if(!loc){currentView='locations';return renderLocations();}
+  const items=loc.items||[];
+  const pins=loc.pins||[];
+  const low=items.filter(i=>i.minQty&&i.qty<=i.minQty);
   return `
   <div class="breadcrumb">
     <a onclick="currentView='locations';render()">← Emplacements</a> / <span>${loc.name}</span>
@@ -328,18 +235,36 @@ function renderItems(){
   <div class="panel">
     <div class="panel-header">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:24px">${loc.icon}</span>
+        <span style="font-size:22px">${loc.icon}</span>
         <span class="panel-title">${loc.name}</span>
         <span class="tag">${loc.type}</span>
       </div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="openEditPhoto('${loc.id}')">📷 ${loc.photoURL?'Photo':'+ Photo'}</button>
         <button class="btn" onclick="openQR('${loc.id}')">QR</button>
         <button class="btn btn-primary" onclick="openAddItem('${loc.id}')">+ Article</button>
       </div>
     </div>
-    ${items.length===0?'<div class="empty" style="padding:2rem"><div class="big">🔍</div><div>Vide pour l\'instant</div></div>':''}
-    ${items.map(item=>`
+
+    ${loc.photoURL?`
+    <div class="photo-wrapper" id="pw-${loc.id}">
+      <img src="${loc.photoURL}" id="pi-${loc.id}" onclick="openPhotoZoom('${loc.id}')" style="cursor:zoom-in">
+      ${pins.map((p,i)=>p?`<div class="pin" style="left:${p.x}%;top:${p.y}%" onclick="event.stopPropagation();showPinDetail('${loc.id}',${i})">${i+1}</div>`:``).join('')}
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:-8px;margin-bottom:1rem">💡 Cliquez sur ● pour placer un article sur la photo</p>
+    `:`
+    <div class="photo-zone" style="margin-bottom:1rem">
+      <input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload('${loc.id}',this)">
+      <div style="font-size:30px">📷</div>
+      <p style="margin-top:6px;color:var(--muted);font-size:13px">Ajouter une photo<br><span style="font-size:11px">Depuis ton téléphone → prendre une photo du carton/étagère</span></p>
+    </div>`}
+
+    ${items.length===0?'<div class="empty" style="padding:1.5rem"><div class="big">🔍</div><div>Vide pour l\'instant</div></div>':''}
+    ${items.map((item,idx)=>{
+      const pin=pins[idx];
+      return `
     <div class="item-row">
+      ${loc.photoURL?`<span class="pin-indicator ${pin?'placed':'empty'}" onclick="startPinPlacement('${loc.id}',${idx})" title="${pin?'Repositionner sur photo':'Placer sur photo'}">${pin?'●':'○'}</span>`:''}
       <div style="flex:1;min-width:0">
         <div class="item-name">${item.name}</div>
         <div class="item-meta">${item.ref||'—'} · ${item.unit||'pcs'}</div>
@@ -351,16 +276,138 @@ function renderItems(){
         <button class="qty-btn" onclick="changeQty('${loc.id}','${item.id}',1)">+</button>
       </div>
       <button class="btn btn-danger" style="font-size:11px;padding:4px 8px" onclick="confirmDeleteItem('${loc.id}','${item.id}')">✕</button>
-    </div>`).join('')}
+    </div>`}).join('')}
   </div>`;
 }
 
-// ── Search view ───────────────────────────────────────────────────────────────
+async function handlePhotoUpload(locId,input){
+  const file=input.files[0];
+  if(!file) return;
+  const loc=locations.find(l=>l.id===locId);
+  const url=await uploadPhoto(locId,file);
+  await saveLoc({...loc,photoURL:url,pins:[]});
+  toast('✅ Photo enregistrée !');
+}
+
+function openEditPhoto(locId){
+  const loc=locations.find(l=>l.id===locId);
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">📷 Photo — ${loc.name}</div>
+    ${loc.photoURL?`<img src="${loc.photoURL}" class="photo-preview" style="max-height:200px">`:''}
+    <div class="photo-zone" style="margin-bottom:10px">
+      <input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload('${locId}',this);this.closest('.modal-backdrop').remove()">
+      <div style="font-size:26px">📷</div>
+      <p style="margin-top:6px;color:var(--muted);font-size:13px">${loc.photoURL?'Remplacer la photo':'Prendre / choisir une photo'}</p>
+    </div>
+    ${loc.photoURL?`<button class="btn btn-danger" style="width:100%;margin-bottom:8px" onclick="deletePhoto('${locId}');this.closest('.modal-backdrop').remove()">🗑️ Supprimer la photo</button>`:''}
+    <button class="btn" style="width:100%" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+}
+
+async function deletePhoto(locId){
+  const loc=locations.find(l=>l.id===locId);
+  await saveLoc({...loc,photoURL:'',pins:[]});
+  toast('🗑️ Photo supprimée');
+}
+
+function openPhotoZoom(locId){
+  const loc=locations.find(l=>l.id===locId);
+  const pins=loc.pins||[];
+  const items=loc.items||[];
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.style.alignItems='flex-start';
+  m.style.paddingTop='1.5rem';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:680px">
+    <div class="modal-title">${loc.icon} ${loc.name}</div>
+    <div class="photo-wrapper">
+      <img src="${loc.photoURL}" style="width:100%;border-radius:10px;display:block;max-height:400px;object-fit:cover">
+      ${pins.map((p,i)=>p?`<div class="pin" style="left:${p.x}%;top:${p.y}%">${i+1}</div>`:``).join('')}
+    </div>
+    ${pins.filter(Boolean).length?`
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1rem">
+      ${pins.map((p,i)=>p?`
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:var(--mono)">${i+1}</span>
+        <div style="flex:1"><div style="font-weight:500;font-size:13px">${p.label}</div><div style="font-size:11px;color:var(--muted);font-family:var(--mono)">${items[i]?.ref||''} · ${items[i]?.qty||0} ${items[i]?.unit||'pcs'}</div></div>
+      </div>`:``).join('')}
+    </div>`:''}
+    <button class="btn" style="width:100%" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+}
+
+function startPinPlacement(locId,itemIdx){
+  const loc=locations.find(l=>l.id===locId);
+  const item=(loc.items||[])[itemIdx];
+  const img=document.getElementById(`pi-${locId}`);
+  if(!img){toast('Pas de photo disponible');return;}
+  toast(`📍 Cliquez sur la photo pour placer "${item.name}"`);
+  img.style.cursor='crosshair';
+  img.style.outline='2px solid var(--accent)';
+  img.style.borderRadius='10px';
+  const handler=async(e)=>{
+    img.removeEventListener('click',handler);
+    img.style.cursor='zoom-in';
+    img.style.outline='';
+    const rect=img.getBoundingClientRect();
+    const x=parseFloat(((e.clientX-rect.left)/rect.width*100).toFixed(1));
+    const y=parseFloat(((e.clientY-rect.top)/rect.height*100).toFixed(1));
+    const pins=[...(loc.pins||[])];
+    while(pins.length<=itemIdx) pins.push(null);
+    pins[itemIdx]={x,y,label:item.name};
+    await saveLoc({...loc,pins});
+    toast(`✅ "${item.name}" placé !`);
+  };
+  img.addEventListener('click',handler);
+}
+
+function showPinDetail(locId,pinIdx){
+  const loc=locations.find(l=>l.id===locId);
+  const pin=(loc.pins||[])[pinIdx];
+  const item=(loc.items||[])[pinIdx];
+  if(!pin||!item) return;
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:300px">
+    <div class="modal-title">📍 ${pin.label}</div>
+    <div style="font-size:13px;margin-bottom:6px;color:var(--muted)">Référence : <span style="color:var(--text)">${item.ref||'—'}</span></div>
+    <div style="font-size:13px;margin-bottom:1rem;color:var(--muted)">Quantité : <span style="color:var(--accent);font-family:var(--mono)">${item.qty} ${item.unit||'pcs'}</span></div>
+    <div class="qty-ctrl" style="justify-content:center;margin-bottom:1rem">
+      <button class="qty-btn" onclick="changeQty('${locId}','${item.id}',-1)">−</button>
+      <span class="item-qty" style="font-size:18px">${item.qty}</span>
+      <button class="qty-btn" onclick="changeQty('${locId}','${item.id}',1)">+</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
+      <button class="btn btn-danger" style="flex:1" onclick="removePin('${locId}',${pinIdx});this.closest('.modal-backdrop').remove()">Suppr. pin</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+}
+
+async function removePin(locId,idx){
+  const loc=locations.find(l=>l.id===locId);
+  const pins=[...(loc.pins||[])];
+  pins[idx]=null;
+  await saveLoc({...loc,pins});
+  toast('📍 Annotation supprimée');
+}
+
 function renderSearch(){
   return `
   <div class="search-bar">
     <span class="search-icon">🔍</span>
-    <input id="search-input" placeholder="Chercher un article dans tout l'inventaire..." oninput="doSearch()" autofocus>
+    <input id="search-input" placeholder="Chercher un article, une référence..." oninput="doSearch()" autofocus>
   </div>
   <div id="search-results" class="panel" style="min-height:120px">
     <div class="empty" style="padding:1.5rem"><div>Tapez pour chercher</div></div>
@@ -368,21 +415,30 @@ function renderSearch(){
 }
 
 function doSearch(){
-  const q = document.getElementById('search-input')?.value.toLowerCase().trim();
-  const el = document.getElementById('search-results');
+  const q=document.getElementById('search-input')?.value.toLowerCase().trim();
+  const el=document.getElementById('search-results');
   if(!el) return;
-  if(!q){ el.innerHTML='<div class="empty" style="padding:1.5rem"><div>Tapez pour chercher</div></div>'; return; }
+  if(!q){el.innerHTML='<div class="empty" style="padding:1.5rem"><div>Tapez pour chercher</div></div>';return;}
   const results=[];
-  locations.forEach(loc=>(loc.items||[]).forEach(item=>{
+  locations.forEach(loc=>(loc.items||[]).forEach((item,idx)=>{
     if(item.name.toLowerCase().includes(q)||(item.ref||'').toLowerCase().includes(q))
-      results.push({loc,item});
+      results.push({loc,item,idx});
   }));
-  if(!results.length){ el.innerHTML=`<div class="empty" style="padding:1.5rem"><div>Aucun résultat pour <b>${q}</b></div></div>`; return; }
-  el.innerHTML=results.map(({loc,item})=>`
-  <div class="item-row">
+  if(!results.length){el.innerHTML=`<div class="empty" style="padding:1.5rem"><div>Aucun résultat pour <b>${q}</b></div></div>`;return;}
+  el.innerHTML=results.map(({loc,item,idx})=>{
+    const pin=(loc.pins||[])[idx];
+    return `
+  <div class="item-row" style="gap:12px">
+    ${loc.photoURL
+      ?`<img class="search-thumb" src="${loc.photoURL}" onclick="openLocation('${loc.id}')" loading="lazy">`
+      :`<div class="search-thumb-placeholder" onclick="openLocation('${loc.id}')">${loc.icon}</div>`}
     <div style="flex:1;min-width:0">
       <div class="item-name">${item.name}</div>
-      <div class="item-meta"><span style="color:var(--accent2)">${loc.icon} ${loc.name}</span> · ${item.ref||'—'} · ${item.unit||'pcs'}</div>
+      <div class="item-meta">
+        <span style="color:var(--accent2);cursor:pointer" onclick="openLocation('${loc.id}')">${loc.icon} ${loc.name}</span>
+        · ${item.ref||'—'} · ${item.unit||'pcs'}
+        ${pin?`<span style="color:var(--accent)"> · 📍 annoté</span>`:''}
+      </div>
     </div>
     ${item.minQty&&item.qty<=item.minQty?`<span class="badge badge-low">bas</span>`:''}
     <div class="qty-ctrl">
@@ -390,122 +446,121 @@ function doSearch(){
       <span class="item-qty">${item.qty}</span>
       <button class="qty-btn" onclick="changeQty('${loc.id}','${item.id}',1)">+</button>
     </div>
-  </div>`).join('');
+  </div>`}).join('');
 }
 
-// ── QR list ───────────────────────────────────────────────────────────────────
 function renderQRList(){
   return `
   <div class="panel">
-    <div class="panel-header"><div class="panel-title">📷 QR Codes par emplacement</div></div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Cliquez sur un emplacement pour générer, afficher et imprimer son QR code.</p>
+    <div class="panel-header"><div class="panel-title">📷 QR Codes</div></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Scanner → accès direct à l'emplacement avec photo et annotations.</p>
     ${locations.map(loc=>`
-    <div class="item-row" style="cursor:pointer" onclick="openQR('${loc.id}')">
-      <span style="font-size:20px">${loc.icon}</span>
-      <div style="flex:1;margin-left:8px">
+    <div class="item-row" style="cursor:pointer;gap:12px" onclick="openQR('${loc.id}')">
+      ${loc.photoURL?`<img class="search-thumb" src="${loc.photoURL}" loading="lazy">`:`<div class="search-thumb-placeholder">${loc.icon}</div>`}
+      <div style="flex:1">
         <div class="item-name">${loc.name}</div>
-        <div class="item-meta">${(loc.items||[]).length} article(s)</div>
+        <div class="item-meta">${(loc.items||[]).length} article(s)${(loc.pins||[]).filter(Boolean).length?` · ${(loc.pins||[]).filter(Boolean).length} annotation(s)`:''}</div>
       </div>
-      <span class="tag">Voir QR →</span>
+      <span class="tag">QR →</span>
     </div>`).join('')}
-    ${locations.length===0?'<div class="empty" style="padding:1.5rem"><div>Aucun emplacement créé</div></div>':''}
+    ${locations.length===0?'<div class="empty" style="padding:1.5rem"><div>Aucun emplacement</div></div>':''}
   </div>`;
 }
 
-// ── QR Code modal ─────────────────────────────────────────────────────────────
 function openQR(locId){
-  const loc = locations.find(l=>l.id===locId);
-  const url = window.location.href.split('?')[0] + '?loc=' + locId;
-  const m = document.createElement('div');
-  m.className = 'modal-backdrop';
-  m.innerHTML = `
+  const loc=locations.find(l=>l.id===locId);
+  const url=window.location.href.split('?')[0]+'?loc='+locId;
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
   <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
     <div class="modal-title">${loc.icon} ${loc.name}</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:.5rem">Scanner pour voir l'inventaire de cet emplacement.</p>
-    <div class="qr-container"><div id="qr-canvas"></div></div>
+    <div style="background:#fff;padding:16px;border-radius:8px;display:inline-block;margin:1rem 0">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&margin=8" style="border-radius:4px;display:block">
+    </div>
     <div class="url-display">${url}</div>
     <div style="display:flex;gap:8px;margin-top:1rem">
       <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
       <button class="btn btn-primary" style="flex:1" onclick="printQR('${locId}')">🖨️ Imprimer</button>
     </div>
   </div>`;
-  m.onclick = ()=>m.remove();
+  m.onclick=()=>m.remove();
   document.body.appendChild(m);
-  import("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js").catch(()=>{});
-  setTimeout(()=>{
-    if(typeof QRCode !== 'undefined'){
-      new QRCode(document.getElementById('qr-canvas'),{text:url,width:200,height:200,colorDark:'#000000',colorLight:'#ffffff'});
-    } else {
-      // fallback via API
-      document.getElementById('qr-canvas').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}" style="border-radius:4px">`;
-    }
-  }, 100);
 }
 
 function printQR(locId){
-  const loc = locations.find(l=>l.id===locId);
-  const url = window.location.href.split('?')[0] + '?loc=' + locId;
-  const w = window.open('','_blank');
+  const loc=locations.find(l=>l.id===locId);
+  const url=window.location.href.split('?')[0]+'?loc='+locId;
+  const w=window.open('','_blank');
   w.document.write(`<!DOCTYPE html><html><head><title>QR - ${loc.name}</title>
-<style>
-  body{font-family:'Segoe UI',sans-serif;text-align:center;padding:2rem;background:#fff;display:flex;flex-direction:column;align-items:center}
-  .box{border:2px solid #111;padding:1.5rem 2rem;border-radius:12px;display:inline-block;margin-top:1rem}
-  h2{font-size:22px;margin:0 0 4px}p{color:#666;font-size:13px;margin-bottom:1rem}
-  .url{font-family:monospace;font-size:10px;color:#999;margin-top:12px;max-width:220px;word-break:break-all}
-</style></head><body>
-<div class="box">
-  <h2>${loc.icon} ${loc.name}</h2>
-  <p>Scanner pour voir l'inventaire</p>
-  <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}&margin=8" style="border-radius:4px">
-  <div class="url">${url}</div>
-</div>
-<script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script>
-</body></html>`);
+<style>body{font-family:'Segoe UI',sans-serif;text-align:center;padding:2rem;background:#fff}
+.box{border:2px solid #111;padding:1.5rem 2rem;border-radius:12px;display:inline-block}
+h2{font-size:22px;margin:0 0 4px}p{color:#666;font-size:13px;margin-bottom:1rem}
+.url{font-family:monospace;font-size:10px;color:#999;margin-top:12px;word-break:break-all}
+</style></head><body><div class="box">
+<h2>${loc.icon} ${loc.name}</h2><p>Scanner pour voir l'inventaire</p>
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}&margin=8">
+<div class="url">${url}</div></div>
+<script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script></body></html>`);
   w.document.close();
 }
 
-// ── Add location modal ────────────────────────────────────────────────────────
 function openAddLocation(){
-  const m = document.createElement('div');
-  m.className = 'modal-backdrop';
-  m.innerHTML = `
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-title">Nouvel emplacement</div>
-    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="ml-name" placeholder="ex: Armoire C, Frigo 2..."></div>
-    <div class="form-col" style="margin-bottom:10px"><label>Type</label>
+    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="ml-name" placeholder="ex: Carton fourre-tout, Rack, Étagère..."></div>
+    <div class="form-col" style="margin-bottom:12px"><label>Type</label>
       <select id="ml-type">${Object.keys(icons).map(k=>`<option value="${k}">${icons[k]} ${k.charAt(0).toUpperCase()+k.slice(1)}</option>`).join('')}</select>
+    </div>
+    <div class="form-col" style="margin-bottom:10px"><label>Photo (optionnel — tu peux l'ajouter plus tard)</label>
+      <div class="photo-zone">
+        <input type="file" id="ml-photo" accept="image/*" capture="environment">
+        <div style="font-size:26px">📷</div>
+        <p style="margin-top:6px;color:var(--muted);font-size:12px">Prendre une photo maintenant</p>
+      </div>
+      <div id="ml-preview"></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:1rem">
       <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
       <button class="btn btn-primary" style="flex:1" onclick="addLocation()">Créer</button>
     </div>
   </div>`;
-  m.onclick = ()=>m.remove();
+  m.onclick=()=>m.remove();
   document.body.appendChild(m);
   document.getElementById('ml-name').focus();
+  document.getElementById('ml-photo').addEventListener('change',function(){
+    const f=this.files[0];if(!f)return;
+    const url=URL.createObjectURL(f);
+    document.getElementById('ml-preview').innerHTML=`<img src="${url}" class="photo-preview">`;
+  });
 }
 
 async function addLocation(){
-  const name = document.getElementById('ml-name').value.trim();
-  const type = document.getElementById('ml-type').value;
+  const name=document.getElementById('ml-name').value.trim();
+  const type=document.getElementById('ml-type').value;
   if(!name) return;
-  const loc = {id:uid(), name, icon:icons[type], type, items:[], order:Date.now()};
+  const id=uid();
+  let photoURL='';
+  const photoFile=document.getElementById('ml-photo')?.files[0];
   document.querySelector('.modal-backdrop')?.remove();
-  await saveLoc(loc);
+  if(photoFile) photoURL=await uploadPhoto(id,photoFile);
+  await saveLoc({id,name,icon:icons[type],type,items:[],pins:[],photoURL,order:Date.now()});
   toast('✅ Emplacement créé');
 }
 
-// ── Add item modal ────────────────────────────────────────────────────────────
 function openAddItem(locId){
-  const m = document.createElement('div');
-  m.className = 'modal-backdrop';
-  m.innerHTML = `
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-title">Ajouter un article</div>
-    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="ai-name" placeholder="ex: Gants nitrile taille L"></div>
+    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="ai-name" placeholder="ex: Arduino Uno, Relais 5V, Câble USB-C..."></div>
     <div class="form-row">
-      <div class="form-col"><label>Référence</label><input id="ai-ref" placeholder="GLV-L"></div>
-      <div class="form-col"><label>Unité</label><input id="ai-unit" placeholder="boîte, pcs, ml..." value="pcs"></div>
+      <div class="form-col"><label>Référence</label><input id="ai-ref" placeholder="ARD-UNO"></div>
+      <div class="form-col"><label>Unité</label><input id="ai-unit" placeholder="pcs, m, rouleau..." value="pcs"></div>
     </div>
     <div class="form-row">
       <div class="form-col"><label>Quantité</label><input id="ai-qty" type="number" value="1" min="0"></div>
@@ -516,78 +571,58 @@ function openAddItem(locId){
       <button class="btn btn-primary" style="flex:1" onclick="addItem('${locId}')">Ajouter</button>
     </div>
   </div>`;
-  m.onclick = ()=>m.remove();
+  m.onclick=()=>m.remove();
   document.body.appendChild(m);
   document.getElementById('ai-name').focus();
 }
 
 async function addItem(locId){
-  const name = document.getElementById('ai-name').value.trim();
+  const name=document.getElementById('ai-name').value.trim();
   if(!name) return;
-  const loc = locations.find(l=>l.id===locId);
-  const items = [...(loc.items||[])];
-  const existing = items.find(i=>i.name.toLowerCase()===name.toLowerCase());
-  if(existing){
-    existing.qty += parseInt(document.getElementById('ai-qty').value)||0;
-  } else {
-    items.push({
-      id:uid(), name,
-      ref:document.getElementById('ai-ref').value.trim(),
-      unit:document.getElementById('ai-unit').value.trim()||'pcs',
-      qty:parseInt(document.getElementById('ai-qty').value)||0,
-      minQty:parseInt(document.getElementById('ai-min').value)||0,
-    });
-  }
+  const loc=locations.find(l=>l.id===locId);
+  const items=[...(loc.items||[])];
+  const existing=items.find(i=>i.name.toLowerCase()===name.toLowerCase());
+  if(existing){existing.qty+=parseInt(document.getElementById('ai-qty').value)||0;}
+  else{items.push({id:uid(),name,ref:document.getElementById('ai-ref').value.trim(),unit:document.getElementById('ai-unit').value.trim()||'pcs',qty:parseInt(document.getElementById('ai-qty').value)||0,minQty:parseInt(document.getElementById('ai-min').value)||0});}
   document.querySelector('.modal-backdrop')?.remove();
-  await saveLoc({...loc, items});
+  await saveLoc({...loc,items});
   toast('✅ Article ajouté');
 }
 
-// ── Quantity update ───────────────────────────────────────────────────────────
-async function changeQty(locId, itemId, delta){
-  const loc = locations.find(l=>l.id===locId);
-  const items = (loc.items||[]).map(i=>i.id===itemId?{...i,qty:Math.max(0,i.qty+delta)}:i);
-  await saveLoc({...loc, items});
+async function changeQty(locId,itemId,delta){
+  const loc=locations.find(l=>l.id===locId);
+  const items=(loc.items||[]).map(i=>i.id===itemId?{...i,qty:Math.max(0,i.qty+delta)}:i);
+  await saveLoc({...loc,items});
 }
 
-// ── Delete helpers ────────────────────────────────────────────────────────────
 function confirmDeleteLoc(id){
-  const loc = locations.find(l=>l.id===id);
+  const loc=locations.find(l=>l.id===id);
   if(!confirm(`Supprimer "${loc.name}" et ses ${(loc.items||[]).length} articles ?`)) return;
-  deleteLoc(id).then(()=>toast('🗑️ Supprimé'));
+  removeLoc(id).then(()=>toast('🗑️ Supprimé'));
 }
 
-function confirmDeleteItem(locId, itemId){
-  const loc = locations.find(l=>l.id===locId);
-  const item = (loc.items||[]).find(i=>i.id===itemId);
+function confirmDeleteItem(locId,itemId){
+  const loc=locations.find(l=>l.id===locId);
+  const item=(loc.items||[]).find(i=>i.id===itemId);
   if(!confirm(`Supprimer "${item.name}" ?`)) return;
-  const items = (loc.items||[]).filter(i=>i.id!==itemId);
+  const items=(loc.items||[]).filter(i=>i.id!==itemId);
   saveLoc({...loc,items}).then(()=>toast('🗑️ Article supprimé'));
 }
 
-// ── QR param on load ──────────────────────────────────────────────────────────
 function checkQRParam(){
-  const locId = new URLSearchParams(window.location.search).get('loc');
-  if(locId){
-    selectedLoc = locId;
-    currentView = 'items';
-  }
+  const locId=new URLSearchParams(window.location.search).get('loc');
+  if(locId){selectedLoc=locId;currentView='items';}
 }
 
-// ── Expose to global ──────────────────────────────────────────────────────────
-Object.assign(window, {
-  showView, checkPassword, openLocation, openAddLocation, addLocation,
-  openAddItem, addItem, changeQty, confirmDeleteLoc, confirmDeleteItem,
-  openQR, printQR, doSearch
+Object.assign(window,{
+  showView,openLocation,openAddLocation,addLocation,openAddItem,addItem,
+  changeQty,confirmDeleteLoc,confirmDeleteItem,openQR,printQR,doSearch,
+  openEditPhoto,handlePhotoUpload,deletePhoto,openPhotoZoom,
+  startPinPlacement,showPinDetail,removePin
 });
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
-authed = APP_PASSWORD === null || sessionStorage.getItem('labo_auth')==='1';
 checkQRParam();
-if(isConfigured){ initFirebase(); } else { render(); }
+initFirebase();
 </script>
-
-<!-- QRCode lib (global fallback) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </body>
 </html>
