@@ -435,7 +435,7 @@ function renderRapport(){
     <div style="display:grid;grid-template-columns:1fr 80px 120px 1fr;gap:0;background:var(--bg3);padding:8px 14px;font-size:11px;font-weight:600;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px">
       <div>Article</div><div style="text-align:center">Qté</div><div>Réf.</div><div>Emplacement</div>
     </div>
-    ${rows.length===0?'<div class="empty">Aucun article dans l'inventaire</div>':''}
+    ${rows.length===0?'<div class="empty">Aucun article dans l\'inventaire</div>':''}
     ${rows.map((r,i)=>`
     <div style="display:grid;grid-template-columns:1fr 80px 120px 1fr;gap:0;padding:8px 14px;font-size:13px;border-top:1px solid var(--border);background:${i%2===0?'transparent':'rgba(255,255,255,.01)'};${r.item.minQty&&r.item.qty<=r.item.minQty?'border-left:3px solid var(--danger);':''}" onclick="goToNode('${r.node.id}');showView('tree')" style="cursor:pointer">
       <div style="font-weight:500;cursor:pointer" title="Voir dans l'inventaire">${r.item.name}${r.item.minQty&&r.item.qty<=r.item.minQty?` <span class="badge badge-low">bas</span>`:''}</div>
