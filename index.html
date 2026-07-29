@@ -704,6 +704,8 @@ function onDragStart(e, id){
 }
 
 function onDragEnd(e){
+  clearTimeout(autoOpenTimer);
+  autoOpenTarget = null;
   if(dragId){
     const el = document.getElementById('node-'+dragId);
     if(el) el.classList.remove('dragging');
@@ -717,20 +719,35 @@ function onDragEnd(e){
   dragId = null;
 }
 
+let autoOpenTimer = null;
+let autoOpenTarget = null;
+
 function onDragOver(e, targetId){
   if(!dragId || dragId === targetId) return;
-  // prevent dropping into own descendant
   if(isDescendant(targetId, dragId)) return;
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
   document.querySelectorAll('.node.drag-over').forEach(el=>el.classList.remove('drag-over'));
   const el = document.getElementById('node-'+targetId);
   if(el) el.classList.add('drag-over');
+  // auto-open closed nodes after 600ms hover
+  if(autoOpenTarget !== targetId){
+    clearTimeout(autoOpenTimer);
+    autoOpenTarget = targetId;
+    if(!openIds.has(targetId)){
+      autoOpenTimer = setTimeout(()=>{
+        openIds.add(targetId);
+        render();
+      }, 600);
+    }
+  }
 }
 
 function onDragLeave(e){
   if(!e.currentTarget.contains(e.relatedTarget)){
     e.currentTarget.classList.remove('drag-over');
+    clearTimeout(autoOpenTimer);
+    autoOpenTarget = null;
   }
 }
 
