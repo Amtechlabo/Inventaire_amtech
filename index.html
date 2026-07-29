@@ -212,6 +212,7 @@ function render(){
       <button class="btn ${currentView==='tree'?'active':''}" onclick="showView('tree')">📦 Inventaire</button>
       <button class="btn ${currentView==='search'?'active':''}" onclick="showView('search')">🔍 Recherche</button>
       <button class="btn ${currentView==='qrlist'?'active':''}" onclick="showView('qrlist')">📷 QR Codes</button>
+      <button class="btn ${currentView==='rapport'?'active':''}" onclick="showView('rapport')">📋 Rapport</button>
     </div>
   </div>
   <div id="vc">${renderView(allItems,lowCount)}</div>`;
@@ -222,6 +223,7 @@ function renderView(allItems,lowCount){
   if(currentView==='tree')   return renderTree(allItems,lowCount);
   if(currentView==='search') return renderSearch();
   if(currentView==='qrlist') return renderQRList();
+  if(currentView==='rapport') return renderRapport();
   return '';
 }
 
@@ -389,6 +391,125 @@ function goToNode(id){
     const el=document.getElementById('node-'+id);
     if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
   },100);
+}
+
+
+// ── Rapport / Inventaire total ────────────────────────────────────────────────
+function getNodePath(nodeId){
+  const parts=[];
+  let n=nodes[nodeId];
+  while(n){parts.unshift(n.name);n=nodes[n.parentId];}
+  return parts.join(' › ');
+}
+
+function renderRapport(){
+  // Build flat list of all items with location path
+  const rows=[];
+  Object.values(nodes).forEach(node=>{
+    const path=getNodePath(node.id);
+    (node.items||[]).forEach(item=>{
+      rows.push({item,path,node});
+    });
+  });
+  // sort by name
+  rows.sort((a,b)=>a.item.name.localeCompare(b.item.name));
+  const low=rows.filter(r=>r.item.minQty&&r.item.qty<=r.item.minQty);
+
+  return `
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:16px;font-weight:600">📋 Inventaire total</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${rows.length} référence(s) · ${rows.reduce((s,r)=>s+(r.item.qty||0),0)} articles au total</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="exportCSV()">⬇️ CSV</button>
+      <button class="btn btn-sm btn-primary" onclick="printRapport()">🖨️ Imprimer</button>
+    </div>
+  </div>
+
+  ${low.length?`<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--danger);margin-bottom:1rem">
+    ⚠️ ${low.length} article(s) en stock bas : ${low.map(r=>r.item.name).join(', ')}
+  </div>`:''}
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <div style="display:grid;grid-template-columns:1fr 80px 120px 1fr;gap:0;background:var(--bg3);padding:8px 14px;font-size:11px;font-weight:600;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px">
+      <div>Article</div><div style="text-align:center">Qté</div><div>Réf.</div><div>Emplacement</div>
+    </div>
+    ${rows.length===0?'<div class="empty">Aucun article dans l'inventaire</div>':''}
+    ${rows.map((r,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 80px 120px 1fr;gap:0;padding:8px 14px;font-size:13px;border-top:1px solid var(--border);background:${i%2===0?'transparent':'rgba(255,255,255,.01)'};${r.item.minQty&&r.item.qty<=r.item.minQty?'border-left:3px solid var(--danger);':''}" onclick="goToNode('${r.node.id}');showView('tree')" style="cursor:pointer">
+      <div style="font-weight:500;cursor:pointer" title="Voir dans l'inventaire">${r.item.name}${r.item.minQty&&r.item.qty<=r.item.minQty?` <span class="badge badge-low">bas</span>`:''}</div>
+      <div style="text-align:center;font-family:var(--mono);color:${r.item.qty===0?'var(--danger)':r.item.minQty&&r.item.qty<=r.item.minQty?'var(--danger)':'var(--accent)'}">${r.item.qty}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${r.item.ref||'—'}</div>
+      <div style="font-size:12px;color:var(--accent2);cursor:pointer" onclick="event.stopPropagation();goToNode('${r.node.id}');showView('tree')">${r.path}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function exportCSV(){
+  const rows=[];
+  Object.values(nodes).forEach(node=>{
+    const path=getNodePath(node.id);
+    (node.items||[]).forEach(item=>{
+      rows.push([item.name, item.qty, item.unit||'pcs', item.ref||'', path]);
+    });
+  });
+  rows.sort((a,b)=>a[0].localeCompare(b[0]));
+  const header=['Article','Quantité','Unité','Référence','Emplacement'];
+  const csv=[header,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`inventaire_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('⬇️ Export CSV téléchargé');
+}
+
+function printRapport(){
+  const rows=[];
+  Object.values(nodes).forEach(node=>{
+    const path=getNodePath(node.id);
+    (node.items||[]).forEach(item=>{
+      rows.push({item,path});
+    });
+  });
+  rows.sort((a,b)=>a.item.name.localeCompare(b.item.name));
+  const date=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Inventaire stock.elec</title>
+<style>
+  body{font-family:'Segoe UI',sans-serif;padding:2rem;background:#fff;color:#111;font-size:13px}
+  h1{font-size:20px;margin-bottom:4px}
+  .sub{color:#666;font-size:12px;margin-bottom:1.5rem}
+  table{width:100%;border-collapse:collapse;margin-top:1rem}
+  th{background:#f0f0f0;padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #ddd}
+  td{padding:6px 10px;border-bottom:1px solid #eee;vertical-align:top}
+  tr:nth-child(even){background:#fafafa}
+  .low{color:#e53e3e;font-weight:600}
+  .qty{font-weight:700;text-align:center}
+  .ref{color:#666;font-size:11px}
+  .path{color:#2b7cb8;font-size:11px}
+  .warn{background:#fff5f5!important}
+  @media print{body{padding:.5rem}h1{font-size:16px}}
+</style></head><body>
+<h1>⚡ stock.elec — Inventaire total</h1>
+<div class="sub">Généré le ${date} · ${rows.length} référence(s) · ${rows.reduce((s,r)=>s+(r.item.qty||0),0)} articles</div>
+<table>
+  <thead><tr><th>Article</th><th>Réf.</th><th style="text-align:center">Qté</th><th>Unité</th><th>Emplacement</th></tr></thead>
+  <tbody>
+    ${rows.map(r=>`<tr class="${r.item.minQty&&r.item.qty<=r.item.minQty?'warn':''}">
+      <td class="${r.item.minQty&&r.item.qty<=r.item.minQty?'low':''}">${r.item.name}</td>
+      <td class="ref">${r.item.ref||'—'}</td>
+      <td class="qty ${r.item.minQty&&r.item.qty<=r.item.minQty?'low':''}">${r.item.qty}</td>
+      <td class="ref">${r.item.unit||'pcs'}</td>
+      <td class="path">${r.path}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>
+<script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script>
+</body></html>`);
+  w.document.close();
+  toast('🖨️ Impression en cours...');
 }
 
 // ── QR list ───────────────────────────────────────────────────────────────────
@@ -841,7 +962,8 @@ Object.assign(window,{
   openEditPhoto,handlePhotoUpload,deletePhoto,openPhotoZoom,
   startPin,showPinDetail,removePin,
   onDragStart,onDragEnd,onDragOver,onDragLeave,onDragOverRoot,onDragLeaveRoot,onDrop,onDropRoot,
-  openEditNode,applyEditNode
+  openEditNode,applyEditNode,
+  exportCSV,printRapport,renderRapport
 });
 
 initFirebase();
