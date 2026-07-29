@@ -112,7 +112,7 @@ label{font-size:12px;color:var(--muted);font-weight:500}
 .drag-handle:hover{color:var(--muted)}
 .drag-handle:active{cursor:grabbing}
 .node.dragging{opacity:.35;pointer-events:none}
-.node.drag-over > .node-header{background:rgba(34,211,238,.1);outline:2px dashed var(--accent2);border-radius:8px}
+.node-header.drag-over{background:rgba(34,211,238,.12)!important;outline:2px dashed var(--accent2);border-radius:8px}
 .drop-root-zone{border:2px dashed var(--border);border-radius:10px;padding:12px;text-align:center;font-size:12px;color:var(--muted);margin-top:10px;transition:all .2s;display:none}
 .drop-root-zone.visible{display:block}
 .drop-root-zone.drag-over{border-color:var(--accent);color:var(--accent);background:rgba(74,222,128,.06)}
@@ -255,8 +255,8 @@ function renderNode(node,depth){
   const isOpen = openIds.has(node.id);
   const lowItems = items.filter(i=>i.minQty&&i.qty<=i.minQty);
 
-  return `<div class="node" data-depth="${Math.min(depth,3)}" id="node-${node.id}" ondragover="onDragOver(event,'${node.id}')" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${node.id}')">
-  <div class="node-header" onclick="toggleNode('${node.id}')">
+  return `<div class="node" data-depth="${Math.min(depth,3)}" id="node-${node.id}">
+  <div class="node-header" onclick="toggleNode('${node.id}')" ondragover="onDragOver(event,'${node.id}')" ondragleave="onDragLeave(event,'${node.id}')" ondrop="onDrop(event,'${node.id}')">
     <span class="drag-handle" draggable="true" onmousedown="event.stopPropagation()" ondragstart="onDragStart(event,'${node.id}')" ondragend="onDragEnd(event)" title="Déplacer" onclick="event.stopPropagation()">⠿</span>
     <span class="node-toggle ${isOpen?'open':''}">▶</span>
     <span class="node-icon">${node.icon}</span>
@@ -264,6 +264,7 @@ function renderNode(node,depth){
     <span class="node-meta">${items.length} art · ${children.length} sous</span>
     ${lowItems.length?`<span class="badge badge-low">⚠️${lowItems.length}</span>`:''}
     <div class="node-actions" onclick="event.stopPropagation()">
+      <button class="btn btn-sm" onclick="openEditNode('${node.id}')" title="Renommer">✏️</button>
       <button class="btn btn-sm" onclick="openQR('${node.id}')" title="QR Code">QR</button>
       <button class="btn btn-sm btn-danger" onclick="confirmDeleteNode('${node.id}')" title="Supprimer">✕</button>
     </div>
@@ -681,6 +682,40 @@ async function removePin(nodeId,idx){
   await saveNode({...node,pins});
 }
 
+
+// ── Edit node ─────────────────────────────────────────────────────────────────
+function openEditNode(nodeId){
+  const node = nodes[nodeId];
+  const m = document.createElement('div');
+  m.className = 'modal-backdrop';
+  m.innerHTML = `
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">✏️ Modifier "${node.name}"</div>
+    <div class="form-col" style="margin-bottom:10px"><label>Nom</label><input id="en-name" value="${node.name}"></div>
+    <div class="form-col" style="margin-bottom:14px"><label>Type</label>
+      <select id="en-type">${Object.keys(ICONS).map(k=>`<option value="${k}" ${k===node.type?'selected':''}>${ICONS[k]} ${k.charAt(0).toUpperCase()+k.slice(1)}</option>`).join('')}</select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1" onclick="applyEditNode('${nodeId}')">Enregistrer</button>
+    </div>
+  </div>`;
+  m.onclick = ()=>m.remove();
+  document.body.appendChild(m);
+  const inp = document.getElementById('en-name');
+  inp.focus(); inp.select();
+}
+
+async function applyEditNode(nodeId){
+  const name = document.getElementById('en-name').value.trim();
+  const type = document.getElementById('en-type').value;
+  if(!name) return;
+  const node = nodes[nodeId];
+  document.querySelector('.modal-backdrop')?.remove();
+  await saveNode({...node, name, type, icon: ICONS[type]});
+  toast('✅ Modifié !');
+}
+
 // ── QR param on load ──────────────────────────────────────────────────────────
 function checkQRParam(){
   const nodeId=new URLSearchParams(window.location.search).get('node');
@@ -690,6 +725,9 @@ function checkQRParam(){
 
 // ── Drag & Drop ──────────────────────────────────────────────────────────────
 let dragId = null;
+let autoOpenTimer = null;
+let autoOpenTarget = null;
+let currentDragOver = null;
 
 function onDragStart(e, id){
   dragId = id;
@@ -706,46 +744,43 @@ function onDragStart(e, id){
 function onDragEnd(e){
   clearTimeout(autoOpenTimer);
   autoOpenTarget = null;
+  currentDragOver = null;
   if(dragId){
     const el = document.getElementById('node-'+dragId);
     if(el) el.classList.remove('dragging');
   }
-  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  document.querySelectorAll('.node-header.drag-over').forEach(el=>el.classList.remove('drag-over'));
   const rootZone = document.getElementById('drop-root');
-  if(rootZone) rootZone.classList.remove('drag-over','visible');
-  if(Object.keys(nodes).length > 0){
-    if(rootZone) rootZone.classList.add('visible');
-  }
+  if(rootZone){ rootZone.classList.remove('drag-over','visible'); }
   dragId = null;
 }
-
-let autoOpenTimer = null;
-let autoOpenTarget = null;
 
 function onDragOver(e, targetId){
   if(!dragId || dragId === targetId) return;
   if(isDescendant(targetId, dragId)) return;
   e.preventDefault();
+  e.stopPropagation();
   e.dataTransfer.dropEffect = 'move';
-  document.querySelectorAll('.node.drag-over').forEach(el=>el.classList.remove('drag-over'));
-  const el = document.getElementById('node-'+targetId);
-  if(el) el.classList.add('drag-over');
-  // auto-open closed nodes after 600ms hover
-  if(autoOpenTarget !== targetId){
-    clearTimeout(autoOpenTimer);
-    autoOpenTarget = targetId;
-    if(!openIds.has(targetId)){
-      autoOpenTimer = setTimeout(()=>{
-        openIds.add(targetId);
-        render();
-      }, 600);
+  if(currentDragOver !== targetId){
+    document.querySelectorAll('.node-header.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    currentDragOver = targetId;
+    e.currentTarget.classList.add('drag-over');
+    // auto-open closed nodes
+    if(autoOpenTarget !== targetId){
+      clearTimeout(autoOpenTimer);
+      autoOpenTarget = targetId;
+      if(!openIds.has(targetId)){
+        autoOpenTimer = setTimeout(()=>{ openIds.add(targetId); render(); }, 700);
+      }
     }
   }
 }
 
-function onDragLeave(e){
+function onDragLeave(e, targetId){
+  e.stopPropagation();
   if(!e.currentTarget.contains(e.relatedTarget)){
     e.currentTarget.classList.remove('drag-over');
+    if(currentDragOver === targetId) currentDragOver = null;
     clearTimeout(autoOpenTimer);
     autoOpenTarget = null;
   }
@@ -754,7 +789,7 @@ function onDragLeave(e){
 function onDragOverRoot(e){
   if(!dragId) return;
   e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.node-header.drag-over').forEach(el=>el.classList.remove('drag-over'));
   document.getElementById('drop-root')?.classList.add('drag-over');
 }
 
@@ -764,20 +799,23 @@ function onDragLeaveRoot(e){
 
 async function onDrop(e, targetId){
   e.preventDefault();
+  e.stopPropagation();
+  clearTimeout(autoOpenTimer);
   if(!dragId || dragId === targetId) return;
   if(isDescendant(targetId, dragId)) return;
-  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  document.querySelectorAll('.node-header.drag-over').forEach(el=>el.classList.remove('drag-over'));
   const node = nodes[dragId];
+  const targetName = nodes[targetId]?.name;
   if(!node) return;
-  // open target
   openIds.add(targetId);
   await saveNode({...node, parentId: targetId, order: Date.now()});
-  toast(`✅ "${node.name}" déplacé dans "${nodes[targetId]?.name}"`);
+  toast(`✅ "${node.name}" déplacé dans "${targetName}"`);
   dragId = null;
 }
 
 async function onDropRoot(e){
   e.preventDefault();
+  clearTimeout(autoOpenTimer);
   if(!dragId) return;
   document.getElementById('drop-root')?.classList.remove('drag-over');
   const node = nodes[dragId];
@@ -802,7 +840,8 @@ Object.assign(window,{
   openQR,printQR,doSearch,goToNode,
   openEditPhoto,handlePhotoUpload,deletePhoto,openPhotoZoom,
   startPin,showPinDetail,removePin,
-  onDragStart,onDragEnd,onDragOver,onDragLeave,onDragOverRoot,onDragLeaveRoot,onDrop,onDropRoot
+  onDragStart,onDragEnd,onDragOver,onDragLeave,onDragOverRoot,onDragLeaveRoot,onDrop,onDropRoot,
+  openEditNode,applyEditNode
 });
 
 initFirebase();
