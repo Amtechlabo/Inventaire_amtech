@@ -24,7 +24,7 @@
   --font:'Space Grotesk',sans-serif;--mono:'IBM Plex Mono',monospace;
 }
 html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;font-size:14px}
-.app{max-width:960px;margin:0 auto;padding:1rem}
+.app{max-width:980px;margin:0 auto;padding:1rem}
 .header{display:flex;align-items:center;justify-content:space-between;padding:1rem 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
 .logo{font-family:var(--mono);font-size:20px;color:var(--accent);letter-spacing:-0.5px}
 .logo span{color:var(--muted)}
@@ -34,76 +34,83 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-hei
 .btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;transition:all .15s}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.active{background:rgba(74,222,128,.1);border-color:var(--accent);color:var(--accent)}
-.btn-danger:hover{border-color:var(--danger);color:var(--danger)}
+.btn-danger:hover{border-color:var(--danger)!important;color:var(--danger)!important}
 .btn-primary{background:rgba(74,222,128,.15);border-color:var(--accent);color:var(--accent)}
 .btn-primary:hover{background:rgba(74,222,128,.25)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
-.location-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s}
-.location-card:hover{border-color:var(--accent2);transform:translateY(-2px)}
-.loc-photo{width:100%;height:120px;object-fit:cover;display:block}
-.loc-photo-placeholder{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:var(--bg3);font-size:38px}
-.loc-body{padding:.85rem}
-.loc-name{font-weight:600;font-size:15px;margin-bottom:3px}
-.loc-count{font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:6px}
-.loc-actions{display:flex;gap:6px;margin-top:10px}
-.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono);background:rgba(34,211,238,.1);color:var(--accent2);border:1px solid rgba(34,211,238,.2)}
-.panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
-.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
-.panel-title{font-size:16px;font-weight:600}
-input,select,textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font);font-size:13px;width:100%;outline:none;transition:border .15s}
-input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+.btn-sm{padding:4px 10px;font-size:12px}
+input,select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font);font-size:13px;width:100%;outline:none;transition:border .15s}
+input:focus,select:focus{border-color:var(--accent)}
 select option{background:var(--bg3)}
 .form-row{display:flex;gap:10px;margin-bottom:10px}
 .form-col{flex:1;display:flex;flex-direction:column;gap:5px}
 label{font-size:12px;color:var(--muted);font-weight:500}
-.item-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
-.item-row:last-child{border-bottom:none}
-.item-name{font-weight:500;font-size:14px}
-.item-meta{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
-.item-qty{font-family:var(--mono);font-size:14px;color:var(--accent);min-width:36px;text-align:center}
-.qty-ctrl{display:flex;align-items:center;gap:5px}
-.qty-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .1s;line-height:1}
-.qty-btn:hover{border-color:var(--accent);color:var(--accent)}
-.badge{padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono)}
-.badge-low{background:rgba(248,113,113,.1);color:var(--danger);border:1px solid rgba(248,113,113,.2)}
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;overflow-y:auto}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;max-width:500px;max-height:92vh;overflow-y:auto}
-.modal-title{font-size:18px;font-weight:600;margin-bottom:1.25rem}
-.search-bar{position:relative;margin-bottom:1rem}
-.search-bar input{padding-left:36px}
-.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
-.empty{text-align:center;padding:3rem;color:var(--muted)}
-.empty .big{font-size:40px;margin-bottom:1rem}
-.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:1.5rem}
-.stat{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 16px}
-.stat-val{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--accent)}
-.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
-.breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:1rem;font-size:13px;color:var(--muted)}
-.breadcrumb a{color:var(--accent2);cursor:pointer}
-.breadcrumb a:hover{text-decoration:underline}
-.url-display{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);word-break:break-all;margin-top:8px}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:1.25rem}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;z-index:200;animation:fadeIn .2s;border-left:3px solid var(--accent)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.photo-zone{border:2px dashed var(--border);border-radius:10px;padding:1.25rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.badge{padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono)}
+.badge-low{background:rgba(248,113,113,.1);color:var(--danger);border:1px solid rgba(248,113,113,.2)}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono);background:rgba(34,211,238,.1);color:var(--accent2);border:1px solid rgba(34,211,238,.2)}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 16px}
+.stat-val{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--accent)}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
+.search-bar{position:relative;margin-bottom:1rem}
+.search-bar input{padding-left:36px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.empty{text-align:center;padding:2rem;color:var(--muted)}
+.photo-zone{border:2px dashed var(--border);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
 .photo-zone:hover{border-color:var(--accent);background:rgba(74,222,128,.04)}
 .photo-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.photo-preview{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:block}
-.photo-wrapper{position:relative;width:100%;margin-bottom:1rem}
-.photo-wrapper img{width:100%;border-radius:10px;display:block;max-height:300px;object-fit:cover}
-.pin{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);color:var(--bg);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transform:translate(-50%,-50%);transition:transform .15s;z-index:2;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.photo-preview{width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:block}
+.photo-wrapper{position:relative;width:100%;margin-bottom:.75rem}
+.photo-wrapper img{width:100%;border-radius:8px;display:block;max-height:280px;object-fit:cover}
+.pin{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);color:var(--bg);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transform:translate(-50%,-50%);z-index:2;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.5);transition:transform .15s}
 .pin:hover{transform:translate(-50%,-50%) scale(1.25)}
-.search-thumb{width:52px;height:52px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer}
-.search-thumb-placeholder{width:52px;height:52px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;cursor:pointer}
-.pin-indicator{font-family:var(--mono);font-size:12px;min-width:20px;cursor:pointer;transition:color .15s}
-.pin-indicator.placed{color:var(--accent)}
-.pin-indicator.empty{color:var(--muted)}
+.pin-indicator{font-family:var(--mono);font-size:12px;min-width:18px;cursor:pointer;transition:color .15s;user-select:none}
+.pin-indicator.placed{color:var(--accent)}.pin-indicator.empty{color:var(--border)}
 .pin-indicator:hover{color:var(--accent2)}
+.qty-ctrl{display:flex;align-items:center;gap:5px}
+.qty-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .1s;line-height:1;flex-shrink:0}
+.qty-btn:hover{border-color:var(--accent);color:var(--accent)}
+.qty-val{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:32px;text-align:center}
+.url-display{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);word-break:break-all;margin-top:8px}
+.search-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;cursor:pointer}
+.search-thumb-ph{width:44px;height:44px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;cursor:pointer}
+
+/* ── Tree ── */
+.tree-root{display:flex;flex-direction:column;gap:8px}
+.node{border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--bg2)}
+.node-header{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;user-select:none;transition:background .15s}
+.node-header:hover{background:rgba(255,255,255,.03)}
+.node-toggle{font-size:11px;color:var(--muted);width:14px;flex-shrink:0;transition:transform .2s;display:inline-block}
+.node-toggle.open{transform:rotate(90deg)}
+.node-icon{font-size:18px;flex-shrink:0}
+.node-name{font-weight:600;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.node-meta{font-size:11px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+.node-actions{display:flex;gap:5px;flex-shrink:0}
+.node-body{border-top:1px solid var(--border);padding:10px 12px;display:none}
+.node-body.open{display:block}
+.node-children{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding-left:16px;border-left:2px solid var(--border)}
+.node-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+/* article row inside node */
+.art-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(46,50,69,.5)}
+.art-row:last-child{border-bottom:none}
+.art-name{font-weight:500;font-size:13px;flex:1;min-width:0}
+.art-meta{font-size:11px;color:var(--muted);font-family:var(--mono)}
+/* depth colors */
+.node[data-depth="0"]{border-color:#2e3245}
+.node[data-depth="1"]{border-color:#253040;background:#161924}
+.node[data-depth="2"]{border-color:#1e2838;background:#131720}
+.node[data-depth="3"]{border-color:#192030;background:#111520}
+
 @media(max-width:600px){
   .form-row{flex-direction:column}
   .header{flex-direction:column;align-items:flex-start}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .node-meta{display:none}
 }
 </style>
 </head>
@@ -111,245 +118,492 @@ label{font-size:12px;color:var(--muted);font-weight:500}
 <div class="app" id="root">
   <div style="text-align:center;padding:4rem"><span class="spinner"></span> Chargement...</div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, collection, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const uid = () => Math.random().toString(36).slice(2,9);
-const icons = {armoire:'🗄️',étagère:'📚',tiroir:'🗃️',carton:'📦',établi:'🔧',rack:'🖥️',caisse:'🧰',autre:'📫'};
 
-function toast(msg, dur=2800){
+const uid = () => Math.random().toString(36).slice(2,9);
+const ICONS = {
+  armoire:'🗄️', étagère:'📚', tiroir:'🗃️', carton:'📦',
+  établi:'🔧', rack:'🖥️', caisse:'🧰', banette:'🗂️',
+  étage:'📂', zone:'📌', autre:'📫'
+};
+
+function toast(msg,dur=2600){
   const t=document.createElement('div');
   t.className='toast';t.textContent=msg;
   document.body.appendChild(t);
   setTimeout(()=>t.remove(),dur);
 }
 
-let db_fs;
-let locations=[];
-let currentView='locations';
-let selectedLoc=null;
+let db;
+// nodes: flat map id→node, each node has {id,name,icon,type,parentId,order,photoURL,pins:[],items:[]}
+let nodes = {};
+let openIds = new Set();
+let currentView = 'tree';
 
 function initFirebase(){
-  const app=initializeApp(FIREBASE_CONFIG);
-  db_fs=getFirestore(app);
+  const app = initializeApp(FIREBASE_CONFIG);
+  db = getFirestore(app);
   setSyncStatus('loading');
-  onSnapshot(collection(db_fs,'locations'),snap=>{
-    locations=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));
+  onSnapshot(collection(db,'nodes'), snap => {
+    nodes = {};
+    snap.docs.forEach(d => { nodes[d.id] = {id:d.id,...d.data()}; });
     setSyncStatus('ok');
     render();
-  },()=>setSyncStatus('error'));
+  }, ()=>setSyncStatus('error'));
 }
 
 function setSyncStatus(s){
   const d=document.getElementById('sync-dot');
-  if(d){d.className='sync-dot '+s;d.title=s==='ok'?'Synchronisé':s==='error'?'Erreur':'Connexion...';}
+  if(d){d.className='sync-dot '+s;}
 }
 
-async function saveLoc(loc){await setDoc(doc(db_fs,'locations',loc.id),loc);}
-async function removeLoc(id){await deleteDoc(doc(db_fs,'locations',id));}
+async function saveNode(node){ await setDoc(doc(db,'nodes',node.id), node); }
+async function deleteNode(id){
+  // delete recursively
+  const children = Object.values(nodes).filter(n=>n.parentId===id);
+  for(const c of children) await deleteNode(c.id);
+  await deleteDoc(doc(db,'nodes',id));
+}
 
-// Compresse et stocke la photo en base64 directement dans Firestore
-async function uploadPhoto(locId, file){
-  toast('📷 Compression...');
-  return new Promise((resolve, reject)=>{
-    const reader = new FileReader();
-    reader.onload = (e)=>{
-      const img = new Image();
-      img.onload = ()=>{
-        const canvas = document.createElement('canvas');
-        const MAX = 1200;
-        let w=img.width, h=img.height;
+// ── Photo (base64) ────────────────────────────────────────────────────────────
+function compressPhoto(file){
+  return new Promise((res,rej)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        const MAX=1200; let w=img.width,h=img.height;
         if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
         if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
-        canvas.width=w; canvas.height=h;
+        canvas.width=w;canvas.height=h;
         canvas.getContext('2d').drawImage(img,0,0,w,h);
-        resolve(canvas.toDataURL('image/jpeg', 0.75));
+        res(canvas.toDataURL('image/jpeg',0.75));
       };
-      img.onerror = reject;
-      img.src = e.target.result;
+      img.onerror=rej; img.src=e.target.result;
     };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    reader.onerror=rej; reader.readAsDataURL(file);
   });
 }
 
+// ── Render ────────────────────────────────────────────────────────────────────
 function showView(v){currentView=v;render();}
 
 function render(){
   const root=document.getElementById('root');
+  const allItems = Object.values(nodes).flatMap(n=>n.items||[]);
+  const lowCount = Object.values(nodes).reduce((s,n)=>s+(n.items||[]).filter(i=>i.minQty&&i.qty<=i.minQty).length,0);
   root.innerHTML=`
-    <div class="header">
-      <div class="logo">stock<span>.</span>elec <span class="sync-dot" id="sync-dot"></span></div>
-      <div class="views">
-        <button class="btn ${currentView==='locations'?'active':''}" onclick="showView('locations')">📦 Emplacements</button>
-        <button class="btn ${currentView==='search'?'active':''}" onclick="showView('search')">🔍 Recherche</button>
-        <button class="btn ${currentView==='qrlist'?'active':''}" onclick="showView('qrlist')">📷 QR Codes</button>
-      </div>
+  <div class="header">
+    <div class="logo">stock<span>.</span>elec <span class="sync-dot" id="sync-dot"></span></div>
+    <div class="views">
+      <button class="btn ${currentView==='tree'?'active':''}" onclick="showView('tree')">📦 Inventaire</button>
+      <button class="btn ${currentView==='search'?'active':''}" onclick="showView('search')">🔍 Recherche</button>
+      <button class="btn ${currentView==='qrlist'?'active':''}" onclick="showView('qrlist')">📷 QR Codes</button>
     </div>
-    <div id="vc">${renderView()}</div>`;
+  </div>
+  <div id="vc">${renderView(allItems,lowCount)}</div>`;
   setSyncStatus('ok');
 }
 
-function renderView(){
-  if(currentView==='locations') return renderLocations();
-  if(currentView==='items')     return renderItems();
-  if(currentView==='search')    return renderSearch();
-  if(currentView==='qrlist')    return renderQRList();
+function renderView(allItems,lowCount){
+  if(currentView==='tree')   return renderTree(allItems,lowCount);
+  if(currentView==='search') return renderSearch();
+  if(currentView==='qrlist') return renderQRList();
   return '';
 }
 
-function renderLocations(){
-  const totalRefs=locations.reduce((s,l)=>s+(l.items||[]).length,0);
-  const totalQty=locations.reduce((s,l)=>s+(l.items||[]).reduce((ss,i)=>ss+(i.qty||0),0),0);
-  const lowCount=locations.reduce((s,l)=>s+(l.items||[]).filter(i=>i.minQty&&i.qty<=i.minQty).length,0);
+// ── Tree view ─────────────────────────────────────────────────────────────────
+function renderTree(allItems,lowCount){
+  const roots = Object.values(nodes).filter(n=>!n.parentId).sort((a,b)=>(a.order||0)-(b.order||0));
+  const totalNodes = Object.keys(nodes).length;
   return `
   <div class="stats-bar">
-    <div class="stat"><div class="stat-val">${locations.length}</div><div class="stat-label">Emplacements</div></div>
-    <div class="stat"><div class="stat-val">${totalRefs}</div><div class="stat-label">Références</div></div>
-    <div class="stat"><div class="stat-val">${totalQty}</div><div class="stat-label">Articles total</div></div>
+    <div class="stat"><div class="stat-val">${totalNodes}</div><div class="stat-label">Emplacements</div></div>
+    <div class="stat"><div class="stat-val">${allItems.length}</div><div class="stat-label">Références</div></div>
+    <div class="stat"><div class="stat-val">${allItems.reduce((s,i)=>s+(i.qty||0),0)}</div><div class="stat-label">Articles total</div></div>
     <div class="stat"><div class="stat-val" style="color:${lowCount>0?'var(--danger)':'var(--accent)'}">${lowCount}</div><div class="stat-label">Stock bas</div></div>
   </div>
   <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
-    <button class="btn btn-primary" onclick="openAddLocation()">+ Ajouter emplacement</button>
+    <button class="btn btn-primary" onclick="openAddNode(null)">+ Ajouter emplacement</button>
   </div>
-  <div class="grid">
-    ${locations.map(l=>`
-    <div class="location-card" onclick="openLocation('${l.id}')">
-      ${l.photoURL
-        ?`<img class="loc-photo" src="${l.photoURL}" loading="lazy">`
-        :`<div class="loc-photo-placeholder">${l.icon}</div>`}
-      <div class="loc-body">
-        <div class="loc-name">${l.name}</div>
-        <div class="loc-count">${(l.items||[]).length} article(s)${l.photoURL?' · 📷':''}</div>
-        <span class="tag">${l.type}</span>
-        <div class="loc-actions" onclick="event.stopPropagation()">
-          <button class="btn" style="flex:1;font-size:12px;padding:5px 8px" onclick="openQR('${l.id}')">QR</button>
-          <button class="btn btn-danger" style="font-size:12px;padding:5px 8px" onclick="confirmDeleteLoc('${l.id}')">✕</button>
-        </div>
-      </div>
-    </div>`).join('')}
+  <div class="tree-root">
+    ${roots.map(n=>renderNode(n,0)).join('')}
   </div>
-  ${locations.length===0?'<div class="empty"><div class="big">📦</div><div>Aucun emplacement.<br>Créez votre premier stockage !</div></div>':''}`;
+  ${totalNodes===0?'<div class="empty"><div style="font-size:40px;margin-bottom:1rem">📦</div><div>Aucun emplacement.<br>Créez votre premier stockage !</div></div>':''}`;
 }
 
-function openLocation(id){selectedLoc=id;currentView='items';render();}
+function renderNode(node,depth){
+  const children = Object.values(nodes).filter(n=>n.parentId===node.id).sort((a,b)=>(a.order||0)-(b.order||0));
+  const items = node.items||[];
+  const pins = node.pins||[];
+  const isOpen = openIds.has(node.id);
+  const lowItems = items.filter(i=>i.minQty&&i.qty<=i.minQty);
 
-function renderItems(){
-  const loc=locations.find(l=>l.id===selectedLoc);
-  if(!loc){currentView='locations';return renderLocations();}
-  const items=loc.items||[];
-  const pins=loc.pins||[];
-  const low=items.filter(i=>i.minQty&&i.qty<=i.minQty);
-  return `
-  <div class="breadcrumb">
-    <a onclick="currentView='locations';render()">← Emplacements</a> / <span>${loc.name}</span>
+  return `<div class="node" data-depth="${Math.min(depth,3)}" id="node-${node.id}">
+  <div class="node-header" onclick="toggleNode('${node.id}')">
+    <span class="node-toggle ${isOpen?'open':''}">▶</span>
+    <span class="node-icon">${node.icon}</span>
+    <span class="node-name">${node.name}</span>
+    <span class="node-meta">${items.length} art · ${children.length} sous</span>
+    ${lowItems.length?`<span class="badge badge-low">⚠️${lowItems.length}</span>`:''}
+    <div class="node-actions" onclick="event.stopPropagation()">
+      <button class="btn btn-sm" onclick="openQR('${node.id}')" title="QR Code">QR</button>
+      <button class="btn btn-sm btn-danger" onclick="confirmDeleteNode('${node.id}')" title="Supprimer">✕</button>
+    </div>
   </div>
-  ${low.length?`<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--danger);margin-bottom:1rem">⚠️ Stock bas : ${low.map(i=>i.name).join(', ')}</div>`:''}
-  <div class="panel">
-    <div class="panel-header">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:22px">${loc.icon}</span>
-        <span class="panel-title">${loc.name}</span>
-        <span class="tag">${loc.type}</span>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" onclick="openEditPhoto('${loc.id}')">📷 ${loc.photoURL?'Photo':'+ Photo'}</button>
-        <button class="btn" onclick="openQR('${loc.id}')">QR</button>
-        <button class="btn btn-primary" onclick="openAddItem('${loc.id}')">+ Article</button>
-      </div>
+  <div class="node-body ${isOpen?'open':''}">
+    <div class="node-toolbar">
+      <button class="btn btn-sm btn-primary" onclick="openAddItem('${node.id}')">+ Article</button>
+      <button class="btn btn-sm" onclick="openAddNode('${node.id}')">+ Sous-emplacement</button>
+      <button class="btn btn-sm" onclick="openEditPhoto('${node.id}')">📷 ${node.photoURL?'Photo':'+ Photo'}</button>
     </div>
 
-    ${loc.photoURL?`
-    <div class="photo-wrapper" id="pw-${loc.id}">
-      <img src="${loc.photoURL}" id="pi-${loc.id}" onclick="openPhotoZoom('${loc.id}')" style="cursor:zoom-in">
-      ${pins.map((p,i)=>p?`<div class="pin" style="left:${p.x}%;top:${p.y}%" onclick="event.stopPropagation();showPinDetail('${loc.id}',${i})">${i+1}</div>`:``).join('')}
-    </div>
-    <p style="font-size:12px;color:var(--muted);margin-top:-8px;margin-bottom:1rem">💡 Cliquez sur ● pour placer un article sur la photo</p>
-    `:`
-    <div class="photo-zone" style="margin-bottom:1rem">
-      <input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload('${loc.id}',this)">
-      <div style="font-size:30px">📷</div>
-      <p style="margin-top:6px;color:var(--muted);font-size:13px">Ajouter une photo<br><span style="font-size:11px">Depuis ton téléphone → prendre une photo du carton/étagère</span></p>
-    </div>`}
+    ${node.photoURL?`
+    <div class="photo-wrapper" id="pw-${node.id}">
+      <img src="${node.photoURL}" id="pi-${node.id}" onclick="openPhotoZoom('${node.id}')" style="cursor:zoom-in">
+      ${pins.map((p,i)=>p?`<div class="pin" style="left:${p.x}%;top:${p.y}%" onclick="event.stopPropagation();showPinDetail('${node.id}',${i})">${i+1}</div>`:``).join('')}
+    </div>`:''}
 
-    ${items.length===0?'<div class="empty" style="padding:1.5rem"><div class="big">🔍</div><div>Vide pour l\'instant</div></div>':''}
-    ${items.map((item,idx)=>{
-      const pin=pins[idx];
-      return `
-    <div class="item-row">
-      ${loc.photoURL?`<span class="pin-indicator ${pin?'placed':'empty'}" onclick="startPinPlacement('${loc.id}',${idx})" title="${pin?'Repositionner sur photo':'Placer sur photo'}">${pin?'●':'○'}</span>`:''}
-      <div style="flex:1;min-width:0">
-        <div class="item-name">${item.name}</div>
-        <div class="item-meta">${item.ref||'—'} · ${item.unit||'pcs'}</div>
-      </div>
-      ${item.minQty&&item.qty<=item.minQty?`<span class="badge badge-low">bas</span>`:''}
-      <div class="qty-ctrl">
-        <button class="qty-btn" onclick="changeQty('${loc.id}','${item.id}',-1)">−</button>
-        <span class="item-qty">${item.qty}</span>
-        <button class="qty-btn" onclick="changeQty('${loc.id}','${item.id}',1)">+</button>
-      </div>
-      <button class="btn btn-danger" style="font-size:11px;padding:4px 8px" onclick="confirmDeleteItem('${loc.id}','${item.id}')">✕</button>
-    </div>`}).join('')}
+    ${items.length>0?`<div style="margin-bottom:${children.length?'10px':'0'}">
+      ${items.map((item,idx)=>{
+        const pin=pins[idx];
+        return `<div class="art-row">
+          ${node.photoURL?`<span class="pin-indicator ${pin?'placed':'empty'}" onclick="startPin('${node.id}',${idx})" title="${pin?'Repositionner':'Placer sur photo'}">${pin?'●':'○'}</span>`:''}
+          <div style="flex:1;min-width:0">
+            <div class="art-name">${item.name}</div>
+            <div class="art-meta">${item.ref||'—'} · ${item.unit||'pcs'}</div>
+          </div>
+          ${item.minQty&&item.qty<=item.minQty?`<span class="badge badge-low">bas</span>`:''}
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="changeQty('${node.id}','${item.id}',-1)">−</button>
+            <span class="qty-val">${item.qty}</span>
+            <button class="qty-btn" onclick="changeQty('${node.id}','${item.id}',1)">+</button>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="confirmDeleteItem('${node.id}','${item.id}')">✕</button>
+        </div>`;
+      }).join('')}
+    </div>`:''}
+
+    ${children.length>0?`<div class="node-children">
+      ${children.map(c=>renderNode(c,depth+1)).join('')}
+    </div>`:''}
+
+    ${items.length===0&&children.length===0?`<div style="color:var(--muted);font-size:12px;padding:4px 0">Vide — ajoutez des articles ou des sous-emplacements</div>`:''}
+  </div>
+</div>`;
+}
+
+function toggleNode(id){
+  if(openIds.has(id)) openIds.delete(id); else openIds.add(id);
+  render();
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+function renderSearch(){
+  return `
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input id="search-input" placeholder="Chercher un article, une référence, un emplacement..." oninput="doSearch()" autofocus>
+  </div>
+  <div id="search-results" style="display:flex;flex-direction:column;gap:8px">
+    <div class="empty">Tapez pour chercher</div>
   </div>`;
 }
 
-async function handlePhotoUpload(locId,input){
-  const file=input.files[0];
-  if(!file) return;
-  const loc=locations.find(l=>l.id===locId);
-  const url=await uploadPhoto(locId,file);
-  await saveLoc({...loc,photoURL:url,pins:[]});
-  toast('✅ Photo enregistrée !');
+function doSearch(){
+  const q=document.getElementById('search-input')?.value.toLowerCase().trim();
+  const el=document.getElementById('search-results');
+  if(!el)return;
+  if(!q){el.innerHTML='<div class="empty">Tapez pour chercher</div>';return;}
+  const results=[];
+  Object.values(nodes).forEach(node=>{
+    // match node name
+    if(node.name.toLowerCase().includes(q)){
+      results.push({type:'node',node});
+    }
+    // match items
+    (node.items||[]).forEach((item,idx)=>{
+      if(item.name.toLowerCase().includes(q)||(item.ref||'').toLowerCase().includes(q)){
+        results.push({type:'item',node,item,idx});
+      }
+    });
+  });
+  if(!results.length){el.innerHTML=`<div class="empty">Aucun résultat pour <b>${q}</b></div>`;return;}
+
+  el.innerHTML=results.map(r=>{
+    if(r.type==='node') return `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="goToNode('${r.node.id}')">
+      ${r.node.photoURL?`<img class="search-thumb" src="${r.node.photoURL}">`:`<div class="search-thumb-ph">${r.node.icon}</div>`}
+      <div style="flex:1">
+        <div style="font-weight:600">${r.node.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${r.node.type} · ${(r.node.items||[]).length} article(s)</div>
+      </div>
+      <span class="tag">emplacement</span>
+    </div>`;
+    const pin=(r.node.pins||[])[r.idx];
+    return `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+      ${r.node.photoURL?`<img class="search-thumb" src="${r.node.photoURL}" onclick="goToNode('${r.node.id}')" style="cursor:pointer">`:`<div class="search-thumb-ph" onclick="goToNode('${r.node.id}')" style="cursor:pointer">${r.node.icon}</div>`}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500;font-size:13px">${r.item.name}</div>
+        <div style="font-size:11px;color:var(--muted)">
+          <span style="color:var(--accent2);cursor:pointer" onclick="goToNode('${r.node.id}')">${r.node.icon} ${r.node.name}</span>
+          · ${r.item.ref||'—'} · ${r.item.unit||'pcs'}${pin?' · 📍':''}
+        </div>
+      </div>
+      ${r.item.minQty&&r.item.qty<=r.item.minQty?`<span class="badge badge-low">bas</span>`:''}
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('${r.node.id}','${r.item.id}',-1)">−</button>
+        <span class="qty-val">${r.item.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${r.node.id}','${r.item.id}',1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function openEditPhoto(locId){
-  const loc=locations.find(l=>l.id===locId);
+function goToNode(id){
+  // open all ancestors
+  let n=nodes[id];
+  while(n){openIds.add(n.id);n=nodes[n.parentId];}
+  currentView='tree';
+  render();
+  setTimeout(()=>{
+    const el=document.getElementById('node-'+id);
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },100);
+}
+
+// ── QR list ───────────────────────────────────────────────────────────────────
+function renderQRList(){
+  const all=Object.values(nodes).sort((a,b)=>(a.order||0)-(b.order||0));
+  return `
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+    <div style="font-size:16px;font-weight:600;margin-bottom:.75rem">📷 QR Codes</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Scanner → accès direct à l'emplacement dans l'inventaire.</p>
+    ${all.map(node=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openQR('${node.id}')">
+      ${node.photoURL?`<img class="search-thumb" src="${node.photoURL}" loading="lazy">`:`<div class="search-thumb-ph">${node.icon}</div>`}
+      <div style="flex:1">
+        <div style="font-weight:500">${node.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${node.type} · ${(node.items||[]).length} article(s)</div>
+      </div>
+      <span class="tag">QR →</span>
+    </div>`).join('')}
+    ${all.length===0?'<div class="empty">Aucun emplacement</div>':''}
+  </div>`;
+}
+
+// ── QR modal ──────────────────────────────────────────────────────────────────
+function openQR(nodeId){
+  const node=nodes[nodeId];
+  const url=window.location.href.split('?')[0]+'?node='+nodeId;
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
+    <div class="modal-title">${node.icon} ${node.name}</div>
+    <div style="background:#fff;padding:14px;border-radius:8px;display:inline-block;margin:1rem 0">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&margin=8" style="display:block;border-radius:4px">
+    </div>
+    <div class="url-display">${url}</div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
+      <button class="btn btn-primary" style="flex:1" onclick="printQR('${nodeId}')">🖨️ Imprimer</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+}
+
+function printQR(nodeId){
+  const node=nodes[nodeId];
+  const url=window.location.href.split('?')[0]+'?node='+nodeId;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>QR - ${node.name}</title>
+<style>body{font-family:'Segoe UI',sans-serif;text-align:center;padding:2rem;background:#fff}
+.box{border:2px solid #111;padding:1.5rem 2rem;border-radius:12px;display:inline-block}
+h2{font-size:22px;margin:0 0 4px}p{color:#666;font-size:13px;margin-bottom:1rem}
+.url{font-family:monospace;font-size:10px;color:#999;margin-top:12px;word-break:break-all}
+</style></head><body><div class="box">
+<h2>${node.icon} ${node.name}</h2><p>Scanner pour voir l'inventaire</p>
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}&margin=8">
+<div class="url">${url}</div></div>
+<script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script></body></html>`);
+  w.document.close();
+}
+
+// ── Add node modal ────────────────────────────────────────────────────────────
+function openAddNode(parentId){
+  const parent=parentId?nodes[parentId]:null;
   const m=document.createElement('div');
   m.className='modal-backdrop';
   m.innerHTML=`
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title">📷 Photo — ${loc.name}</div>
-    ${loc.photoURL?`<img src="${loc.photoURL}" class="photo-preview" style="max-height:200px">`:''}
-    <div class="photo-zone" style="margin-bottom:10px">
-      <input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload('${locId}',this);this.closest('.modal-backdrop').remove()">
-      <div style="font-size:26px">📷</div>
-      <p style="margin-top:6px;color:var(--muted);font-size:13px">${loc.photoURL?'Remplacer la photo':'Prendre / choisir une photo'}</p>
+    <div class="modal-title">${parent?`Sous-emplacement dans "${parent.name}"`:'Nouvel emplacement'}</div>
+    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="nn-name" placeholder="ex: Étagère A, Étage 2, Carton rouge..."></div>
+    <div class="form-col" style="margin-bottom:12px"><label>Type</label>
+      <select id="nn-type">${Object.keys(ICONS).map(k=>`<option value="${k}">${ICONS[k]} ${k.charAt(0).toUpperCase()+k.slice(1)}</option>`).join('')}</select>
     </div>
-    ${loc.photoURL?`<button class="btn btn-danger" style="width:100%;margin-bottom:8px" onclick="deletePhoto('${locId}');this.closest('.modal-backdrop').remove()">🗑️ Supprimer la photo</button>`:''}
+    <div class="form-col" style="margin-bottom:10px"><label>Photo (optionnel)</label>
+      <div class="photo-zone">
+        <input type="file" id="nn-photo" accept="image/*" capture="environment">
+        <div style="font-size:24px">📷</div>
+        <p style="color:var(--muted);font-size:12px;margin-top:4px">Prendre / choisir une photo</p>
+      </div>
+      <div id="nn-preview"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1" onclick="addNode('${parentId||''}')">Créer</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+  document.getElementById('nn-name').focus();
+  document.getElementById('nn-photo').addEventListener('change',function(){
+    const f=this.files[0];if(!f)return;
+    document.getElementById('nn-preview').innerHTML=`<img src="${URL.createObjectURL(f)}" class="photo-preview">`;
+  });
+}
+
+async function addNode(parentId){
+  const name=document.getElementById('nn-name').value.trim();
+  const type=document.getElementById('nn-type').value;
+  if(!name)return;
+  const id=uid();
+  let photoURL='';
+  const pf=document.getElementById('nn-photo')?.files[0];
+  document.querySelector('.modal-backdrop')?.remove();
+  if(pf){toast('📷 Compression...');photoURL=await compressPhoto(pf);}
+  const node={id,name,icon:ICONS[type],type,parentId:parentId||null,items:[],pins:[],photoURL,order:Date.now()};
+  await saveNode(node);
+  openIds.add(id);
+  if(parentId)openIds.add(parentId);
+  toast('✅ Créé !');
+}
+
+// ── Add item modal ────────────────────────────────────────────────────────────
+function openAddItem(nodeId){
+  const node=nodes[nodeId];
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Article dans "${node.name}"</div>
+    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="ai-name" placeholder="ex: Arduino Uno, Relais 5V..."></div>
+    <div class="form-row">
+      <div class="form-col"><label>Référence</label><input id="ai-ref" placeholder="ARD-UNO"></div>
+      <div class="form-col"><label>Unité</label><input id="ai-unit" value="pcs" placeholder="pcs, m..."></div>
+    </div>
+    <div class="form-row">
+      <div class="form-col"><label>Quantité</label><input id="ai-qty" type="number" value="1" min="0"></div>
+      <div class="form-col"><label>Seuil alerte</label><input id="ai-min" type="number" placeholder="0" min="0"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1" onclick="addItem('${nodeId}')">Ajouter</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+  document.getElementById('ai-name').focus();
+}
+
+async function addItem(nodeId){
+  const name=document.getElementById('ai-name').value.trim();
+  if(!name)return;
+  const node=nodes[nodeId];
+  const items=[...(node.items||[])];
+  const existing=items.find(i=>i.name.toLowerCase()===name.toLowerCase());
+  if(existing){existing.qty+=parseInt(document.getElementById('ai-qty').value)||0;}
+  else{items.push({id:uid(),name,ref:document.getElementById('ai-ref').value.trim(),unit:document.getElementById('ai-unit').value.trim()||'pcs',qty:parseInt(document.getElementById('ai-qty').value)||0,minQty:parseInt(document.getElementById('ai-min').value)||0});}
+  document.querySelector('.modal-backdrop')?.remove();
+  await saveNode({...node,items});
+  toast('✅ Article ajouté');
+}
+
+async function changeQty(nodeId,itemId,delta){
+  const node=nodes[nodeId];
+  const items=(node.items||[]).map(i=>i.id===itemId?{...i,qty:Math.max(0,i.qty+delta)}:i);
+  await saveNode({...node,items});
+}
+
+function confirmDeleteNode(id){
+  const node=nodes[id];
+  const childCount=Object.values(nodes).filter(n=>n.parentId===id).length;
+  const msg=childCount>0
+    ?`Supprimer "${node.name}" et tous ses sous-emplacements (${childCount}) ?`
+    :`Supprimer "${node.name}" et ses ${(node.items||[]).length} articles ?`;
+  if(!confirm(msg))return;
+  deleteNode(id).then(()=>toast('🗑️ Supprimé'));
+}
+
+function confirmDeleteItem(nodeId,itemId){
+  const node=nodes[nodeId];
+  const item=(node.items||[]).find(i=>i.id===itemId);
+  if(!confirm(`Supprimer "${item.name}" ?`))return;
+  const items=(node.items||[]).filter(i=>i.id!==itemId);
+  saveNode({...node,items}).then(()=>toast('🗑️ Supprimé'));
+}
+
+// ── Photo ─────────────────────────────────────────────────────────────────────
+function openEditPhoto(nodeId){
+  const node=nodes[nodeId];
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">📷 Photo — ${node.name}</div>
+    ${node.photoURL?`<img src="${node.photoURL}" class="photo-preview" style="max-height:180px">`:''}
+    <div class="photo-zone" style="margin-bottom:10px">
+      <input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload('${nodeId}',this);this.closest('.modal-backdrop').remove()">
+      <div style="font-size:24px">📷</div>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px">${node.photoURL?'Remplacer':'Choisir une photo'}</p>
+    </div>
+    ${node.photoURL?`<button class="btn btn-danger" style="width:100%;margin-bottom:8px" onclick="deletePhoto('${nodeId}');this.closest('.modal-backdrop').remove()">🗑️ Supprimer la photo</button>`:''}
     <button class="btn" style="width:100%" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
   </div>`;
   m.onclick=()=>m.remove();
   document.body.appendChild(m);
 }
 
-async function deletePhoto(locId){
-  const loc=locations.find(l=>l.id===locId);
-  await saveLoc({...loc,photoURL:'',pins:[]});
+async function handlePhotoUpload(nodeId,input){
+  const file=input.files[0];if(!file)return;
+  const node=nodes[nodeId];
+  toast('📷 Compression...');
+  const url=await compressPhoto(file);
+  await saveNode({...node,photoURL:url,pins:[]});
+  toast('✅ Photo enregistrée !');
+}
+
+async function deletePhoto(nodeId){
+  const node=nodes[nodeId];
+  await saveNode({...node,photoURL:'',pins:[]});
   toast('🗑️ Photo supprimée');
 }
 
-function openPhotoZoom(locId){
-  const loc=locations.find(l=>l.id===locId);
-  const pins=loc.pins||[];
-  const items=loc.items||[];
+function openPhotoZoom(nodeId){
+  const node=nodes[nodeId];
+  const pins=node.pins||[];
+  const items=node.items||[];
   const m=document.createElement('div');
   m.className='modal-backdrop';
-  m.style.alignItems='flex-start';
-  m.style.paddingTop='1.5rem';
+  m.style.alignItems='flex-start';m.style.paddingTop='1.5rem';
   m.innerHTML=`
   <div class="modal" onclick="event.stopPropagation()" style="max-width:680px">
-    <div class="modal-title">${loc.icon} ${loc.name}</div>
+    <div class="modal-title">${node.icon} ${node.name}</div>
     <div class="photo-wrapper">
-      <img src="${loc.photoURL}" style="width:100%;border-radius:10px;display:block;max-height:400px;object-fit:cover">
+      <img src="${node.photoURL}" style="width:100%;border-radius:10px;display:block;max-height:420px;object-fit:cover">
       ${pins.map((p,i)=>p?`<div class="pin" style="left:${p.x}%;top:${p.y}%">${i+1}</div>`:``).join('')}
     </div>
-    ${pins.filter(Boolean).length?`
-    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1rem">
-      ${pins.map((p,i)=>p?`
-      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
-        <span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:var(--mono)">${i+1}</span>
-        <div style="flex:1"><div style="font-weight:500;font-size:13px">${p.label}</div><div style="font-size:11px;color:var(--muted);font-family:var(--mono)">${items[i]?.ref||''} · ${items[i]?.qty||0} ${items[i]?.unit||'pcs'}</div></div>
+    ${pins.filter(Boolean).length?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1rem">
+      ${pins.map((p,i)=>p?`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+        <span style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</span>
+        <div style="flex:1;font-size:13px">${p.label}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">${items[i]?.qty||0} ${items[i]?.unit||'pcs'}</div>
       </div>`:``).join('')}
     </div>`:''}
     <button class="btn" style="width:100%" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
@@ -358,285 +612,77 @@ function openPhotoZoom(locId){
   document.body.appendChild(m);
 }
 
-function startPinPlacement(locId,itemIdx){
-  const loc=locations.find(l=>l.id===locId);
-  const item=(loc.items||[])[itemIdx];
-  const img=document.getElementById(`pi-${locId}`);
-  if(!img){toast('Pas de photo disponible');return;}
+function startPin(nodeId,itemIdx){
+  const node=nodes[nodeId];
+  const item=(node.items||[])[itemIdx];
+  const img=document.getElementById(`pi-${nodeId}`);
+  if(!img){toast('Pas de photo !');return;}
   toast(`📍 Cliquez sur la photo pour placer "${item.name}"`);
-  img.style.cursor='crosshair';
-  img.style.outline='2px solid var(--accent)';
-  img.style.borderRadius='10px';
+  img.style.cursor='crosshair';img.style.outline='2px solid var(--accent)';img.style.borderRadius='8px';
   const handler=async(e)=>{
     img.removeEventListener('click',handler);
-    img.style.cursor='zoom-in';
-    img.style.outline='';
+    img.style.cursor='zoom-in';img.style.outline='';
     const rect=img.getBoundingClientRect();
     const x=parseFloat(((e.clientX-rect.left)/rect.width*100).toFixed(1));
     const y=parseFloat(((e.clientY-rect.top)/rect.height*100).toFixed(1));
-    const pins=[...(loc.pins||[])];
-    while(pins.length<=itemIdx) pins.push(null);
+    const pins=[...(node.pins||[])];
+    while(pins.length<=itemIdx)pins.push(null);
     pins[itemIdx]={x,y,label:item.name};
-    await saveLoc({...loc,pins});
+    await saveNode({...node,pins});
     toast(`✅ "${item.name}" placé !`);
   };
   img.addEventListener('click',handler);
 }
 
-function showPinDetail(locId,pinIdx){
-  const loc=locations.find(l=>l.id===locId);
-  const pin=(loc.pins||[])[pinIdx];
-  const item=(loc.items||[])[pinIdx];
-  if(!pin||!item) return;
+function showPinDetail(nodeId,pinIdx){
+  const node=nodes[nodeId];
+  const pin=(node.pins||[])[pinIdx];
+  const item=(node.items||[])[pinIdx];
+  if(!pin||!item)return;
   const m=document.createElement('div');
   m.className='modal-backdrop';
   m.innerHTML=`
   <div class="modal" onclick="event.stopPropagation()" style="max-width:300px">
     <div class="modal-title">📍 ${pin.label}</div>
-    <div style="font-size:13px;margin-bottom:6px;color:var(--muted)">Référence : <span style="color:var(--text)">${item.ref||'—'}</span></div>
-    <div style="font-size:13px;margin-bottom:1rem;color:var(--muted)">Quantité : <span style="color:var(--accent);font-family:var(--mono)">${item.qty} ${item.unit||'pcs'}</span></div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Réf : <span style="color:var(--text)">${item.ref||'—'}</span></div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Qté : <span style="color:var(--accent);font-family:var(--mono)">${item.qty} ${item.unit||'pcs'}</span></div>
     <div class="qty-ctrl" style="justify-content:center;margin-bottom:1rem">
-      <button class="qty-btn" onclick="changeQty('${locId}','${item.id}',-1)">−</button>
-      <span class="item-qty" style="font-size:18px">${item.qty}</span>
-      <button class="qty-btn" onclick="changeQty('${locId}','${item.id}',1)">+</button>
+      <button class="qty-btn" onclick="changeQty('${nodeId}','${item.id}',-1)">−</button>
+      <span class="qty-val" style="font-size:18px">${item.qty}</span>
+      <button class="qty-btn" onclick="changeQty('${nodeId}','${item.id}',1)">+</button>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
-      <button class="btn btn-danger" style="flex:1" onclick="removePin('${locId}',${pinIdx});this.closest('.modal-backdrop').remove()">Suppr. pin</button>
+      <button class="btn btn-danger" style="flex:1" onclick="removePin('${nodeId}',${pinIdx});this.closest('.modal-backdrop').remove()">Suppr. pin</button>
     </div>
   </div>`;
   m.onclick=()=>m.remove();
   document.body.appendChild(m);
 }
 
-async function removePin(locId,idx){
-  const loc=locations.find(l=>l.id===locId);
-  const pins=[...(loc.pins||[])];
+async function removePin(nodeId,idx){
+  const node=nodes[nodeId];
+  const pins=[...(node.pins||[])];
   pins[idx]=null;
-  await saveLoc({...loc,pins});
-  toast('📍 Annotation supprimée');
+  await saveNode({...node,pins});
 }
 
-function renderSearch(){
-  return `
-  <div class="search-bar">
-    <span class="search-icon">🔍</span>
-    <input id="search-input" placeholder="Chercher un article, une référence..." oninput="doSearch()" autofocus>
-  </div>
-  <div id="search-results" class="panel" style="min-height:120px">
-    <div class="empty" style="padding:1.5rem"><div>Tapez pour chercher</div></div>
-  </div>`;
-}
-
-function doSearch(){
-  const q=document.getElementById('search-input')?.value.toLowerCase().trim();
-  const el=document.getElementById('search-results');
-  if(!el) return;
-  if(!q){el.innerHTML='<div class="empty" style="padding:1.5rem"><div>Tapez pour chercher</div></div>';return;}
-  const results=[];
-  locations.forEach(loc=>(loc.items||[]).forEach((item,idx)=>{
-    if(item.name.toLowerCase().includes(q)||(item.ref||'').toLowerCase().includes(q))
-      results.push({loc,item,idx});
-  }));
-  if(!results.length){el.innerHTML=`<div class="empty" style="padding:1.5rem"><div>Aucun résultat pour <b>${q}</b></div></div>`;return;}
-  el.innerHTML=results.map(({loc,item,idx})=>{
-    const pin=(loc.pins||[])[idx];
-    return `
-  <div class="item-row" style="gap:12px">
-    ${loc.photoURL
-      ?`<img class="search-thumb" src="${loc.photoURL}" onclick="openLocation('${loc.id}')" loading="lazy">`
-      :`<div class="search-thumb-placeholder" onclick="openLocation('${loc.id}')">${loc.icon}</div>`}
-    <div style="flex:1;min-width:0">
-      <div class="item-name">${item.name}</div>
-      <div class="item-meta">
-        <span style="color:var(--accent2);cursor:pointer" onclick="openLocation('${loc.id}')">${loc.icon} ${loc.name}</span>
-        · ${item.ref||'—'} · ${item.unit||'pcs'}
-        ${pin?`<span style="color:var(--accent)"> · 📍 annoté</span>`:''}
-      </div>
-    </div>
-    ${item.minQty&&item.qty<=item.minQty?`<span class="badge badge-low">bas</span>`:''}
-    <div class="qty-ctrl">
-      <button class="qty-btn" onclick="changeQty('${loc.id}','${item.id}',-1)">−</button>
-      <span class="item-qty">${item.qty}</span>
-      <button class="qty-btn" onclick="changeQty('${loc.id}','${item.id}',1)">+</button>
-    </div>
-  </div>`}).join('');
-}
-
-function renderQRList(){
-  return `
-  <div class="panel">
-    <div class="panel-header"><div class="panel-title">📷 QR Codes</div></div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Scanner → accès direct à l'emplacement avec photo et annotations.</p>
-    ${locations.map(loc=>`
-    <div class="item-row" style="cursor:pointer;gap:12px" onclick="openQR('${loc.id}')">
-      ${loc.photoURL?`<img class="search-thumb" src="${loc.photoURL}" loading="lazy">`:`<div class="search-thumb-placeholder">${loc.icon}</div>`}
-      <div style="flex:1">
-        <div class="item-name">${loc.name}</div>
-        <div class="item-meta">${(loc.items||[]).length} article(s)${(loc.pins||[]).filter(Boolean).length?` · ${(loc.pins||[]).filter(Boolean).length} annotation(s)`:''}</div>
-      </div>
-      <span class="tag">QR →</span>
-    </div>`).join('')}
-    ${locations.length===0?'<div class="empty" style="padding:1.5rem"><div>Aucun emplacement</div></div>':''}
-  </div>`;
-}
-
-function openQR(locId){
-  const loc=locations.find(l=>l.id===locId);
-  const url=window.location.href.split('?')[0]+'?loc='+locId;
-  const m=document.createElement('div');
-  m.className='modal-backdrop';
-  m.innerHTML=`
-  <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
-    <div class="modal-title">${loc.icon} ${loc.name}</div>
-    <div style="background:#fff;padding:16px;border-radius:8px;display:inline-block;margin:1rem 0">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&margin=8" style="border-radius:4px;display:block">
-    </div>
-    <div class="url-display">${url}</div>
-    <div style="display:flex;gap:8px;margin-top:1rem">
-      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
-      <button class="btn btn-primary" style="flex:1" onclick="printQR('${locId}')">🖨️ Imprimer</button>
-    </div>
-  </div>`;
-  m.onclick=()=>m.remove();
-  document.body.appendChild(m);
-}
-
-function printQR(locId){
-  const loc=locations.find(l=>l.id===locId);
-  const url=window.location.href.split('?')[0]+'?loc='+locId;
-  const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>QR - ${loc.name}</title>
-<style>body{font-family:'Segoe UI',sans-serif;text-align:center;padding:2rem;background:#fff}
-.box{border:2px solid #111;padding:1.5rem 2rem;border-radius:12px;display:inline-block}
-h2{font-size:22px;margin:0 0 4px}p{color:#666;font-size:13px;margin-bottom:1rem}
-.url{font-family:monospace;font-size:10px;color:#999;margin-top:12px;word-break:break-all}
-</style></head><body><div class="box">
-<h2>${loc.icon} ${loc.name}</h2><p>Scanner pour voir l'inventaire</p>
-<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}&margin=8">
-<div class="url">${url}</div></div>
-<script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script></body></html>`);
-  w.document.close();
-}
-
-function openAddLocation(){
-  const m=document.createElement('div');
-  m.className='modal-backdrop';
-  m.innerHTML=`
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title">Nouvel emplacement</div>
-    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="ml-name" placeholder="ex: Carton fourre-tout, Rack, Étagère..."></div>
-    <div class="form-col" style="margin-bottom:12px"><label>Type</label>
-      <select id="ml-type">${Object.keys(icons).map(k=>`<option value="${k}">${icons[k]} ${k.charAt(0).toUpperCase()+k.slice(1)}</option>`).join('')}</select>
-    </div>
-    <div class="form-col" style="margin-bottom:10px"><label>Photo (optionnel — tu peux l'ajouter plus tard)</label>
-      <div class="photo-zone">
-        <input type="file" id="ml-photo" accept="image/*" capture="environment">
-        <div style="font-size:26px">📷</div>
-        <p style="margin-top:6px;color:var(--muted);font-size:12px">Prendre une photo maintenant</p>
-      </div>
-      <div id="ml-preview"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:1rem">
-      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
-      <button class="btn btn-primary" style="flex:1" onclick="addLocation()">Créer</button>
-    </div>
-  </div>`;
-  m.onclick=()=>m.remove();
-  document.body.appendChild(m);
-  document.getElementById('ml-name').focus();
-  document.getElementById('ml-photo').addEventListener('change',function(){
-    const f=this.files[0];if(!f)return;
-    const url=URL.createObjectURL(f);
-    document.getElementById('ml-preview').innerHTML=`<img src="${url}" class="photo-preview">`;
-  });
-}
-
-async function addLocation(){
-  const name=document.getElementById('ml-name').value.trim();
-  const type=document.getElementById('ml-type').value;
-  if(!name) return;
-  const id=uid();
-  let photoURL='';
-  const photoFile=document.getElementById('ml-photo')?.files[0];
-  document.querySelector('.modal-backdrop')?.remove();
-  if(photoFile) photoURL=await uploadPhoto(id,photoFile);
-  await saveLoc({id,name,icon:icons[type],type,items:[],pins:[],photoURL,order:Date.now()});
-  toast('✅ Emplacement créé');
-}
-
-function openAddItem(locId){
-  const m=document.createElement('div');
-  m.className='modal-backdrop';
-  m.innerHTML=`
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title">Ajouter un article</div>
-    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="ai-name" placeholder="ex: Arduino Uno, Relais 5V, Câble USB-C..."></div>
-    <div class="form-row">
-      <div class="form-col"><label>Référence</label><input id="ai-ref" placeholder="ARD-UNO"></div>
-      <div class="form-col"><label>Unité</label><input id="ai-unit" placeholder="pcs, m, rouleau..." value="pcs"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-col"><label>Quantité</label><input id="ai-qty" type="number" value="1" min="0"></div>
-      <div class="form-col"><label>Seuil alerte</label><input id="ai-min" type="number" placeholder="0" min="0"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:1rem">
-      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
-      <button class="btn btn-primary" style="flex:1" onclick="addItem('${locId}')">Ajouter</button>
-    </div>
-  </div>`;
-  m.onclick=()=>m.remove();
-  document.body.appendChild(m);
-  document.getElementById('ai-name').focus();
-}
-
-async function addItem(locId){
-  const name=document.getElementById('ai-name').value.trim();
-  if(!name) return;
-  const loc=locations.find(l=>l.id===locId);
-  const items=[...(loc.items||[])];
-  const existing=items.find(i=>i.name.toLowerCase()===name.toLowerCase());
-  if(existing){existing.qty+=parseInt(document.getElementById('ai-qty').value)||0;}
-  else{items.push({id:uid(),name,ref:document.getElementById('ai-ref').value.trim(),unit:document.getElementById('ai-unit').value.trim()||'pcs',qty:parseInt(document.getElementById('ai-qty').value)||0,minQty:parseInt(document.getElementById('ai-min').value)||0});}
-  document.querySelector('.modal-backdrop')?.remove();
-  await saveLoc({...loc,items});
-  toast('✅ Article ajouté');
-}
-
-async function changeQty(locId,itemId,delta){
-  const loc=locations.find(l=>l.id===locId);
-  const items=(loc.items||[]).map(i=>i.id===itemId?{...i,qty:Math.max(0,i.qty+delta)}:i);
-  await saveLoc({...loc,items});
-}
-
-function confirmDeleteLoc(id){
-  const loc=locations.find(l=>l.id===id);
-  if(!confirm(`Supprimer "${loc.name}" et ses ${(loc.items||[]).length} articles ?`)) return;
-  removeLoc(id).then(()=>toast('🗑️ Supprimé'));
-}
-
-function confirmDeleteItem(locId,itemId){
-  const loc=locations.find(l=>l.id===locId);
-  const item=(loc.items||[]).find(i=>i.id===itemId);
-  if(!confirm(`Supprimer "${item.name}" ?`)) return;
-  const items=(loc.items||[]).filter(i=>i.id!==itemId);
-  saveLoc({...loc,items}).then(()=>toast('🗑️ Article supprimé'));
-}
-
+// ── QR param on load ──────────────────────────────────────────────────────────
 function checkQRParam(){
-  const locId=new URLSearchParams(window.location.search).get('loc');
-  if(locId){selectedLoc=locId;currentView='items';}
+  const nodeId=new URLSearchParams(window.location.search).get('node');
+  if(nodeId) goToNode(nodeId);
 }
 
 Object.assign(window,{
-  showView,openLocation,openAddLocation,addLocation,openAddItem,addItem,
-  changeQty,confirmDeleteLoc,confirmDeleteItem,openQR,printQR,doSearch,
+  showView,toggleNode,openAddNode,addNode,openAddItem,addItem,
+  changeQty,confirmDeleteNode,confirmDeleteItem,
+  openQR,printQR,doSearch,goToNode,
   openEditPhoto,handlePhotoUpload,deletePhoto,openPhotoZoom,
-  startPinPlacement,showPinDetail,removePin
+  startPin,showPinDetail,removePin
 });
 
-checkQRParam();
 initFirebase();
+setTimeout(checkQRParam, 800);
 </script>
 </body>
 </html>
