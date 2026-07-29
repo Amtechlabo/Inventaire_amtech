@@ -107,6 +107,16 @@ label{font-size:12px;color:var(--muted);font-weight:500}
 .node[data-depth="2"]{border-color:#1e2838;background:#131720}
 .node[data-depth="3"]{border-color:#192030;background:#111520}
 
+/* ── Drag & Drop ── */
+.drag-handle{cursor:grab;color:var(--border);font-size:16px;padding:0 4px;flex-shrink:0;user-select:none;transition:color .15s;line-height:1}
+.drag-handle:hover{color:var(--muted)}
+.drag-handle:active{cursor:grabbing}
+.node.dragging{opacity:.35;pointer-events:none}
+.node.drag-over > .node-header{background:rgba(34,211,238,.1);outline:2px dashed var(--accent2);border-radius:8px}
+.drop-root-zone{border:2px dashed var(--border);border-radius:10px;padding:12px;text-align:center;font-size:12px;color:var(--muted);margin-top:10px;transition:all .2s;display:none}
+.drop-root-zone.visible{display:block}
+.drop-root-zone.drag-over{border-color:var(--accent);color:var(--accent);background:rgba(74,222,128,.06)}
+
 @media(max-width:600px){
   .form-row{flex-direction:column}
   .header{flex-direction:column;align-items:flex-start}
@@ -232,6 +242,9 @@ function renderTree(allItems,lowCount){
   <div class="tree-root">
     ${roots.map(n=>renderNode(n,0)).join('')}
   </div>
+  <div class="drop-root-zone ${Object.keys(nodes).length>0?'visible':''}" id="drop-root" ondragover="onDragOverRoot(event)" ondragleave="onDragLeaveRoot(event)" ondrop="onDropRoot(event)">
+    Déposer ici pour mettre à la racine
+  </div>
   ${totalNodes===0?'<div class="empty"><div style="font-size:40px;margin-bottom:1rem">📦</div><div>Aucun emplacement.<br>Créez votre premier stockage !</div></div>':''}`;
 }
 
@@ -242,8 +255,9 @@ function renderNode(node,depth){
   const isOpen = openIds.has(node.id);
   const lowItems = items.filter(i=>i.minQty&&i.qty<=i.minQty);
 
-  return `<div class="node" data-depth="${Math.min(depth,3)}" id="node-${node.id}">
+  return `<div class="node" data-depth="${Math.min(depth,3)}" id="node-${node.id}" ondragover="onDragOver(event,'${node.id}')" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${node.id}')">
   <div class="node-header" onclick="toggleNode('${node.id}')">
+    <span class="drag-handle" draggable="true" onmousedown="event.stopPropagation()" ondragstart="onDragStart(event,'${node.id}')" ondragend="onDragEnd(event)" title="Déplacer" onclick="event.stopPropagation()">⠿</span>
     <span class="node-toggle ${isOpen?'open':''}">▶</span>
     <span class="node-icon">${node.icon}</span>
     <span class="node-name">${node.name}</span>
@@ -673,12 +687,105 @@ function checkQRParam(){
   if(nodeId) goToNode(nodeId);
 }
 
+
+// ── Drag & Drop ──────────────────────────────────────────────────────────────
+let dragId = null;
+
+function onDragStart(e, id){
+  dragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  setTimeout(()=>{
+    const el = document.getElementById('node-'+id);
+    if(el) el.classList.add('dragging');
+    const rootZone = document.getElementById('drop-root');
+    if(rootZone) rootZone.classList.add('visible');
+  }, 0);
+}
+
+function onDragEnd(e){
+  if(dragId){
+    const el = document.getElementById('node-'+dragId);
+    if(el) el.classList.remove('dragging');
+  }
+  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  const rootZone = document.getElementById('drop-root');
+  if(rootZone) rootZone.classList.remove('drag-over','visible');
+  if(Object.keys(nodes).length > 0){
+    if(rootZone) rootZone.classList.add('visible');
+  }
+  dragId = null;
+}
+
+function onDragOver(e, targetId){
+  if(!dragId || dragId === targetId) return;
+  // prevent dropping into own descendant
+  if(isDescendant(targetId, dragId)) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.node.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  const el = document.getElementById('node-'+targetId);
+  if(el) el.classList.add('drag-over');
+}
+
+function onDragLeave(e){
+  if(!e.currentTarget.contains(e.relatedTarget)){
+    e.currentTarget.classList.remove('drag-over');
+  }
+}
+
+function onDragOverRoot(e){
+  if(!dragId) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.getElementById('drop-root')?.classList.add('drag-over');
+}
+
+function onDragLeaveRoot(e){
+  document.getElementById('drop-root')?.classList.remove('drag-over');
+}
+
+async function onDrop(e, targetId){
+  e.preventDefault();
+  if(!dragId || dragId === targetId) return;
+  if(isDescendant(targetId, dragId)) return;
+  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  const node = nodes[dragId];
+  if(!node) return;
+  // open target
+  openIds.add(targetId);
+  await saveNode({...node, parentId: targetId, order: Date.now()});
+  toast(`✅ "${node.name}" déplacé dans "${nodes[targetId]?.name}"`);
+  dragId = null;
+}
+
+async function onDropRoot(e){
+  e.preventDefault();
+  if(!dragId) return;
+  document.getElementById('drop-root')?.classList.remove('drag-over');
+  const node = nodes[dragId];
+  if(!node) return;
+  await saveNode({...node, parentId: null, order: Date.now()});
+  toast(`✅ "${node.name}" déplacé à la racine`);
+  dragId = null;
+}
+
+function isDescendant(potentialChild, ancestorId){
+  let n = nodes[potentialChild];
+  while(n && n.parentId){
+    if(n.parentId === ancestorId) return true;
+    n = nodes[n.parentId];
+  }
+  return false;
+}
+
 Object.assign(window,{
   showView,toggleNode,openAddNode,addNode,openAddItem,addItem,
   changeQty,confirmDeleteNode,confirmDeleteItem,
   openQR,printQR,doSearch,goToNode,
   openEditPhoto,handlePhotoUpload,deletePhoto,openPhotoZoom,
-  startPin,showPinDetail,removePin
+  startPin,showPinDetail,removePin,
+  onDragStart,onDragEnd,onDragOver,onDragLeave,onDragOverRoot,onDragLeaveRoot,onDrop,onDropRoot
 });
 
 initFirebase();
