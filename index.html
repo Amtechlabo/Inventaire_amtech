@@ -839,7 +839,7 @@ async function renderLogs(){
 }
 
 async function clearLogs(){
-  if(!confirm('Vider tout l'historique ?')) return;
+  if(!confirm('Vider tout l\'historique ?')) return;
   await setDoc(doc(db,'_config','logs'), {list:[]});
   toast('🗑️ Historique vidé');
   showView('logs');
