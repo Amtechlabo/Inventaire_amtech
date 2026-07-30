@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>stock.elec</title>
+<script>
+  const FIREBASE_CONFIG = {
+    apiKey:            "AIzaSyCLYzxJTHssT-HG7LFLbvDDcugXqbDnoiA",
+    authDomain:        "labo-stock.firebaseapp.com",
+    projectId:         "labo-stock",
+    storageBucket:     "labo-stock.firebasestorage.app",
+    messagingSenderId: "902045233030",
+    appId:             "1:902045233030:web:fd1f92493d506fc25c0607"
+  };
+</script>
+<script>
+  // Utilisateur admin par défaut (bootstrap uniquement si Firestore vide)
+  const DEFAULT_USER = "Amtech";
+  const DEFAULT_PASS = "Labo2026!";
+  const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24h en ms
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#1a1d27;--bg3:#242736;--border:#2e3245;
+  --accent:#4ade80;--accent2:#22d3ee;--accent3:#f472b6;
+  --text:#e8eaf0;--muted:#7c8098;--danger:#f87171;
+  --font:'Space Grotesk',sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;font-size:14px}
+.app{max-width:980px;margin:0 auto;padding:1rem}
+.header{display:flex;align-items:center;justify-content:space-between;padding:1rem 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
+.logo{font-family:var(--mono);font-size:20px;color:var(--accent);letter-spacing:-0.5px}
+.logo span{color:var(--muted)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-left:8px;transition:background .3s}
+.sync-dot.ok{background:var(--accent)}.sync-dot.error{background:var(--danger)}
+.views{display:flex;gap:6px;flex-wrap:wrap}
+.btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;transition:all .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.active{background:rgba(74,222,128,.1);border-color:var(--accent);color:var(--accent)}
+.btn-danger:hover{border-color:var(--danger)!important;color:var(--danger)!important}
+.btn-primary{background:rgba(74,222,128,.15);border-color:var(--accent);color:var(--accent)}
+.btn-primary:hover{background:rgba(74,222,128,.25)}
+.btn-sm{padding:4px 10px;font-size:12px}
+input,select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font);font-size:13px;width:100%;outline:none;transition:border .15s}
+input:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--bg3)}
+.form-row{display:flex;gap:10px;margin-bottom:10px}
+.form-col{flex:1;display:flex;flex-direction:column;gap:5px}
+label{font-size:12px;color:var(--muted);font-weight:500}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;overflow-y:auto}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:1.25rem}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;z-index:200;animation:fadeIn .2s;border-left:3px solid var(--accent)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.badge{padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono)}
+.badge-low{background:rgba(248,113,113,.1);color:var(--danger);border:1px solid rgba(248,113,113,.2)}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono);background:rgba(34,211,238,.1);color:var(--accent2);border:1px solid rgba(34,211,238,.2)}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 16px}
+.stat-val{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--accent)}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
+.search-bar{position:relative;margin-bottom:1rem}
+.search-bar input{padding-left:36px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.empty{text-align:center;padding:2rem;color:var(--muted)}
+.photo-zone{border:2px dashed var(--border);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.photo-zone:hover{border-color:var(--accent);background:rgba(74,222,128,.04)}
+.photo-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-preview{width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:block}
+.photo-wrapper{position:relative;width:100%;margin-bottom:.75rem}
+.photo-wrapper img{width:100%;border-radius:8px;display:block;max-height:280px;object-fit:cover}
+.pin{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);color:var(--bg);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transform:translate(-50%,-50%);z-index:2;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.5);transition:transform .15s}
+.pin:hover{transform:translate(-50%,-50%) scale(1.25)}
+.pin-indicator{font-family:var(--mono);font-size:12px;min-width:18px;cursor:pointer;transition:color .15s;user-select:none}
+.pin-indicator.placed{color:var(--accent)}.pin-indicator.empty{color:var(--border)}
+.pin-indicator:hover{color:var(--accent2)}
+.qty-ctrl{display:flex;align-items:center;gap:5px}
+.qty-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .1s;line-height:1;flex-shrink:0}
+.qty-btn:hover{border-color:var(--accent);color:var(--accent)}
+.qty-val{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:32px;text-align:center}
+.url-display{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);word-break:break-all;margin-top:8px}
+.search-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;cursor:pointer}
+.search-thumb-ph{width:44px;height:44px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;cursor:pointer}
+
+/* ── Tree ── */
+.tree-root{display:flex;flex-direction:column;gap:8px}
+.node{border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--bg2)}
+.node-header{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;user-select:none;transition:background .15s}
+.node-header:hover{background:rgba(255,255,255,.03)}
+.node-toggle{font-size:11px;color:var(--muted);width:14px;flex-shrink:0;transition:transform .2s;display:inline-block}
+.node-toggle.open{transform:rotate(90deg)}
+.node-icon{font-size:18px;flex-shrink:0}
+.node-name{font-weight:600;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.node-path{font-size:10px;color:var(--muted);padding:2px 12px 0 48px;font-family:var(--mono);display:none}
+.node-meta{font-size:11px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+.node-actions{display:flex;gap:5px;flex-shrink:0}
+.node-body{border-top:1px solid var(--border);padding:10px 12px;display:none}
+.node-body.open{display:block}
+.node-children{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding-left:16px;border-left:2px solid var(--border)}
+.node-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+/* article row inside node */
+.art-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(46,50,69,.5)}
+.art-row:last-child{border-bottom:none}
+.art-name{font-weight:500;font-size:13px;flex:1;min-width:0}
+.art-meta{font-size:11px;color:var(--muted);font-family:var(--mono)}
+/* depth colors */
+.node[data-depth="0"]{border-color:#2e3245}
+.node[data-depth="1"]{border-color:#253040;background:#161924}
+.node[data-depth="2"]{border-color:#1e2838;background:#131720}
+.node[data-depth="3"]{border-color:#192030;background:#111520}
+
+/* ── Drag & Drop ── */
+.drag-handle{cursor:grab;color:var(--border);font-size:16px;padding:0 4px;flex-shrink:0;user-select:none;transition:color .15s;line-height:1}
+.drag-handle:hover{color:var(--muted)}
+.drag-handle:active{cursor:grabbing}
+.node.dragging{opacity:.35;pointer-events:none}
+.node-header.drag-over{background:rgba(34,211,238,.12)!important;outline:2px dashed var(--accent2);border-radius:8px}
+.drop-root-zone{border:2px dashed var(--border);border-radius:10px;padding:12px;text-align:center;font-size:12px;color:var(--muted);margin-top:10px;transition:all .2s;display:none}
+.drop-root-zone.visible{display:block}
+.drop-root-zone.drag-over{border-color:var(--accent);color:var(--accent);background:rgba(74,222,128,.06)}
+
+@media(max-width:600px){
+  .form-row{flex-direction:column}
+  .header{flex-direction:column;align-items:flex-start}
+  .node-meta{display:none}
+  .app{padding:.5rem}
+  /* Node header mobile */
+  .node-name{font-size:13px;white-space:normal!important;overflow:visible!important;text-overflow:unset!important;line-height:1.3}
+  .node-path{display:block}
+  .node-actions .btn-sm{padding:5px 8px;font-size:12px}
+  /* Hide drag handle on touch — not useful */
+  .drag-handle{display:none}
+  /* Header */
+  .views{gap:4px}
+  .views .btn{padding:6px 10px;font-size:12px}
+  /* Node body toolbar */
+  .node-toolbar{gap:5px}
+  .node-toolbar .btn{padding:5px 10px;font-size:12px}
+  /* Stats bar */
+  .stats-bar{grid-template-columns:1fr 1fr;gap:8px}
+}
+/* ── Login ── */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:340px;text-align:center}
+.login-logo{font-family:var(--mono);font-size:26px;color:var(--accent);margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:2rem}
+.login-error{color:var(--danger);font-size:13px;min-height:20px;margin-bottom:10px}
+.login-field{margin-bottom:12px;text-align:left}
+.login-field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500}
+</style>
+</head>
+<body>
+<div class="app" id="root">
+  <div style="text-align:center;padding:4rem"><span class="spinner"></span> Chargement...</div>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, collection, setDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const uid = () => Math.random().toString(36).slice(2,9);
+const ICONS = {
+  armoire:'🗄️', étagère:'📚', tiroir:'🗃️', carton:'📦',
+  établi:'🔧', rack:'🖥️', caisse:'🧰', banette:'🗂️',
+  étage:'📂', zone:'📌', autre:'📫'
+};
+
+function toast(msg,dur=2600){
+  const t=document.createElement('div');
+  t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),dur);
+}
+
+let db;
+// nodes: flat map id→node, each node has {id,name,icon,type,parentId,order,photoURL,pins:[],items:[]}
+let nodes = {};
+let openIds = new Set();
+let currentView = 'tree';
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function isAuthed(){
+  const exp = localStorage.getItem('se_auth_exp');
+  return exp && Date.now() < parseInt(exp);
+}
+
+async function doLogin(){
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.querySelector('#login-screen .btn-primary');
+  if(btn){ btn.disabled=true; btn.textContent='Vérification...'; }
+
+  // Load users from Firestore (or use default if none exist)
+  let users = await loadUsers();
+  if(users.length === 0){
+    // Bootstrap: create default admin
+    users = [{id:'default', username: DEFAULT_USER, password: DEFAULT_PASS, role:'admin'}];
+    await saveUsers(users);
+  }
+
+  const match = users.find(u => u.username === user && u.password === pass);
+  if(match){
+    localStorage.setItem('se_auth_exp', Date.now() + SESSION_DURATION);
+    localStorage.setItem('se_auth_user', match.username);
+    localStorage.setItem('se_auth_role', match.role||'user');
+    document.getElementById('login-screen').remove();
+    bootApp();
+  } else {
+    document.getElementById('login-error').textContent = 'Identifiant ou mot de passe incorrect';
+    document.getElementById('login-pass').value = '';
+    if(btn){ btn.disabled=false; btn.textContent='Accéder →'; }
+    document.getElementById('login-pass').focus();
+  }
+}
+
+function currentUser(){ return localStorage.getItem('se_auth_user')||''; }
+function currentRole(){ return localStorage.getItem('se_auth_role')||'user'; }
+
+async function loadUsers(){
+  try {
+    const snap = await getDoc(doc(db,'_config','users'));
+    if(snap.exists()) return snap.data().list||[];
+  } catch(e){}
+  return [];
+}
+async function saveUsers(list){
+  await setDoc(doc(db,'_config','users'), {list});
+}
+
+function doLogout(){
+  localStorage.removeItem('se_auth_exp');
+  location.reload();
+}
+
+function showLogin(){
+  const div = document.createElement('div');
+  div.id = 'login-screen';
+  div.className = 'login-wrap';
+  div.innerHTML = `
+  <div class="login-box">
+    <div class="login-logo">stock<span style="color:var(--muted)">.</span>elec</div>
+    <div class="login-sub">⚡ Inventaire électronique</div>
+    <div class="login-field">
+      <label>Identifiant</label>
+      <input id="login-user" type="text" placeholder="Identifiant" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+    </div>
+    <div class="login-field">
+      <label>Mot de passe</label>
+      <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button class="btn btn-primary" style="width:100%;padding:10px" onclick="doLogin()">Accéder →</button>
+  </div>`;
+  document.body.appendChild(div);
+  document.getElementById('login-user').focus();
+}
+
+function bootApp(){
+  startSync();
+  setTimeout(checkQRParam, 800);
+}
+
+function initFirebase(){
+  // Initialise db uniquement — pas de sync encore (avant login)
+  const app = initializeApp(FIREBASE_CONFIG);
+  db = getFirestore(app);
+}
+
+function startSync(){
+  setSyncStatus('loading');
+  onSnapshot(collection(db,'nodes'), snap => {
+    nodes = {};
+    snap.docs.forEach(d => { nodes[d.id] = {id:d.id,...d.data()}; });
+    setSyncStatus('ok');
+    render();
+  }, ()=>setSyncStatus('error'));
+}
+
+function setSyncStatus(s){
+  const d=document.getElementById('sync-dot');
+  if(d){d.className='sync-dot '+s;}
+}
+
+async function saveNode(node){ await setDoc(doc(db,'nodes',node.id), node); }
+async function deleteNode(id){
+  // delete recursively
+  const children = Object.values(nodes).filter(n=>n.parentId===id);
+  for(const c of children) await deleteNode(c.id);
+  await deleteDoc(doc(db,'nodes',id));
+}
+
+// ── Photo (base64) ────────────────────────────────────────────────────────────
+function compressPhoto(file){
+  return new Promise((res,rej)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        const MAX=1200; let w=img.width,h=img.height;
+        if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+        if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        res(canvas.toDataURL('image/jpeg',0.75));
+      };
+      img.onerror=rej; img.src=e.target.result;
+    };
+    reader.onerror=rej; reader.readAsDataURL(file);
+  });
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+async function showView(v){
+  currentView=v;
+  if(v==='users'){
+    render();
+    const html = await renderUsers();
+    const vc = document.getElementById('vc');
+    if(vc) vc.innerHTML = html;
+  } else if(v==='logs'){
+    render();
+    const html = await renderLogs();
+    const vc = document.getElementById('vc');
+    if(vc) vc.innerHTML = html;
+  } else {
+    render();
+  }
+}
+
+function render(){
+  const root=document.getElementById('root');
+  const allItems = Object.values(nodes).flatMap(n=>n.items||[]);
+  const lowCount = Object.values(nodes).reduce((s,n)=>s+(n.items||[]).filter(i=>i.minQty&&i.qty<=i.minQty).length,0);
+  root.innerHTML=`
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="logo">stock<span>.</span>elec <span class="sync-dot" id="sync-dot"></span></div>
+      <button class="btn btn-sm" onclick="doLogout()" title="Se déconnecter" style="font-size:11px;padding:4px 10px;color:var(--muted)">🔒 Déco</button>
+    </div>
+    <div class="views">
+      <button class="btn ${currentView==='tree'?'active':''}" onclick="showView('tree')">📦 Inventaire</button>
+      <button class="btn ${currentView==='search'?'active':''}" onclick="showView('search')">🔍 Recherche</button>
+      <button class="btn ${currentView==='qrlist'?'active':''}" onclick="showView('qrlist')">📷 QR Codes</button>
+      <button class="btn ${currentView==='rapport'?'active':''}" onclick="showView('rapport')">📋 Rapport</button>
+      ${currentRole()==='admin'?`<button class="btn ${currentView==='users'?'active':''}" onclick="showView('users')">👤 Utilisateurs</button>`:''}
+      <button class="btn ${currentView==='logs'?'active':''}" onclick="showView('logs')">📜 Historique</button>
+    </div>
+  </div>
+  <div id="vc">${renderView(allItems,lowCount)}</div>`;
+  setSyncStatus('ok');
+}
+
+function renderView(allItems,lowCount){
+  if(currentView==='tree')   return renderTree(allItems,lowCount);
+  if(currentView==='search') return renderSearch();
+  if(currentView==='qrlist') return renderQRList();
+  if(currentView==='rapport') return renderRapport();
+  if(currentView==='users')  return '<div style="text-align:center;padding:2rem"><span class="spinner"></span> Chargement...</div>';
+  if(currentView==='logs')   return '<div style="text-align:center;padding:2rem"><span class="spinner"></span> Chargement...</div>';
+  return '';
+}
+
+// ── Tree view ─────────────────────────────────────────────────────────────────
+function renderTree(allItems,lowCount){
+  const roots = Object.values(nodes).filter(n=>!n.parentId).sort((a,b)=>(a.order||0)-(b.order||0));
+  const totalNodes = Object.keys(nodes).length;
+  return `
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-val">${totalNodes}</div><div class="stat-label">Emplacements</div></div>
+    <div class="stat"><div class="stat-val">${allItems.length}</div><div class="stat-label">Références</div></div>
+    <div class="stat"><div class="stat-val">${allItems.reduce((s,i)=>s+(i.qty||0),0)}</div><div class="stat-label">Articles total</div></div>
+    <div class="stat"><div class="stat-val" style="color:${lowCount>0?'var(--danger)':'var(--accent)'}">${lowCount}</div><div class="stat-label">Stock bas</div></div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+    <button class="btn btn-primary" onclick="openAddNode(null)">+ Ajouter emplacement</button>
+  </div>
+  <div class="tree-root">
+    ${roots.map(n=>renderNode(n,0)).join('')}
+  </div>
+  <div class="drop-root-zone ${Object.keys(nodes).length>0?'visible':''}" id="drop-root" ondragover="onDragOverRoot(event)" ondragleave="onDragLeaveRoot(event)" ondrop="onDropRoot(event)">
+    Déposer ici pour mettre à la racine
+  </div>
+  ${totalNodes===0?'<div class="empty"><div style="font-size:40px;margin-bottom:1rem">📦</div><div>Aucun emplacement.<br>Créez votre premier stockage !</div></div>':''}`;
+}
+
+function renderNode(node,depth){
+  const children = Object.values(nodes).filter(n=>n.parentId===node.id).sort((a,b)=>(a.order||0)-(b.order||0));
+  const items = node.items||[];
+  const pins = node.pins||[];
+  const isOpen = openIds.has(node.id);
+  const lowItems = items.filter(i=>i.minQty&&i.qty<=i.minQty);
+
+  return `<div class="node" data-depth="${Math.min(depth,3)}" id="node-${node.id}">
+  ${node.parentId?`<div class="node-path">📍 ${getNodePath(node.id)}</div>`:''}
+  <div class="node-header" onclick="toggleNode('${node.id}')" ondragover="onDragOver(event,'${node.id}')" ondragleave="onDragLeave(event,'${node.id}')" ondrop="onDrop(event,'${node.id}')">
+    <span class="drag-handle" draggable="true" onmousedown="event.stopPropagation()" ondragstart="onDragStart(event,'${node.id}')" ondragend="onDragEnd(event)" title="Déplacer" onclick="event.stopPropagation()">⠿</span>
+    <span class="node-toggle ${isOpen?'open':''}">▶</span>
+    <span class="node-icon">${node.icon}</span>
+    <span class="node-name">${node.name}</span>
+    <span class="node-meta">${items.length} art · ${children.length} sous</span>
+    ${lowItems.length?`<span class="badge badge-low">⚠️${lowItems.length}</span>`:''}
+    <div class="node-actions" onclick="event.stopPropagation()">
+      <button class="btn btn-sm" onclick="openEditNode('${node.id}')" title="Renommer">✏️</button>
+      <button class="btn btn-sm" onclick="openQR('${node.id}')" title="QR Code">QR</button>
+      <button class="btn btn-sm btn-danger" onclick="confirmDeleteNode('${node.id}')" title="Supprimer">✕</button>
+    </div>
+  </div>
+  <div class="node-body ${isOpen?'open':''}">
+    <div class="node-toolbar">
+      <button class="btn btn-sm btn-primary" onclick="openAddItem('${node.id}')">+ Article</button>
+      <button class="btn btn-sm" onclick="openAddNode('${node.id}')">+ Sous-emplacement</button>
+      <button class="btn btn-sm" onclick="openEditPhoto('${node.id}')">📷 ${node.photoURL?'Photo':'+ Photo'}</button>
+    </div>
+
+    ${node.photoURL?`
+    <div class="photo-wrapper" id="pw-${node.id}">
+      <img src="${node.photoURL}" id="pi-${node.id}" onclick="openPhotoZoom('${node.id}')" style="cursor:zoom-in">
+      ${pins.map((p,i)=>p?`<div class="pin" style="left:${p.x}%;top:${p.y}%" onclick="event.stopPropagation();showPinDetail('${node.id}',${i})">${i+1}</div>`:``).join('')}
+    </div>`:''}
+
+    ${items.length>0?`<div style="margin-bottom:${children.length?'10px':'0'}">
+      ${items.map((item,idx)=>{
+        const pin=pins[idx];
+        return `<div class="art-row">
+          ${node.photoURL?`<span class="pin-indicator ${pin?'placed':'empty'}" onclick="startPin('${node.id}',${idx})" title="${pin?'Repositionner':'Placer sur photo'}">${pin?'●':'○'}</span>`:''}
+          <div style="flex:1;min-width:0">
+            <div class="art-name">${item.name}</div>
+            <div class="art-meta">${item.ref||'—'} · ${item.unit||'pcs'}</div>
+          </div>
+          ${item.minQty&&item.qty<=item.minQty?`<span class="badge badge-low">bas</span>`:''}
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="changeQty('${node.id}','${item.id}',-1)">−</button>
+            <span class="qty-val">${item.qty}</span>
+            <button class="qty-btn" onclick="changeQty('${node.id}','${item.id}',1)">+</button>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="confirmDeleteItem('${node.id}','${item.id}')">✕</button>
+        </div>`;
+      }).join('')}
+    </div>`:''}
+
+    ${children.length>0?`<div class="node-children">
+      ${children.map(c=>renderNode(c,depth+1)).join('')}
+    </div>`:''}
+
+    ${items.length===0&&children.length===0?`<div style="color:var(--muted);font-size:12px;padding:4px 0">Vide — ajoutez des articles ou des sous-emplacements</div>`:''}
+  </div>
+</div>`;
+}
+
+function toggleNode(id){
+  if(openIds.has(id)) openIds.delete(id); else openIds.add(id);
+  render();
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+function renderSearch(){
+  return `
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input id="search-input" placeholder="Chercher un article, une référence, un emplacement..." oninput="doSearch()" autofocus>
+  </div>
+  <div id="search-results" style="display:flex;flex-direction:column;gap:8px">
+    <div class="empty">Tapez pour chercher</div>
+  </div>`;
+}
+
+function doSearch(){
+  const q=document.getElementById('search-input')?.value.toLowerCase().trim();
+  const el=document.getElementById('search-results');
+  if(!el)return;
+  if(!q){el.innerHTML='<div class="empty">Tapez pour chercher</div>';return;}
+  const results=[];
+  Object.values(nodes).forEach(node=>{
+    // match node name
+    if(node.name.toLowerCase().includes(q)){
+      results.push({type:'node',node});
+    }
+    // match items
+    (node.items||[]).forEach((item,idx)=>{
+      if(item.name.toLowerCase().includes(q)||(item.ref||'').toLowerCase().includes(q)){
+        results.push({type:'item',node,item,idx});
+      }
+    });
+  });
+  if(!results.length){el.innerHTML=`<div class="empty">Aucun résultat pour <b>${q}</b></div>`;return;}
+
+  el.innerHTML=results.map(r=>{
+    if(r.type==='node') return `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="goToNode('${r.node.id}')">
+      ${r.node.photoURL?`<img class="search-thumb" src="${r.node.photoURL}">`:`<div class="search-thumb-ph">${r.node.icon}</div>`}
+      <div style="flex:1">
+        <div style="font-weight:600">${r.node.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${r.node.type} · ${(r.node.items||[]).length} article(s)</div>
+      </div>
+      <span class="tag">emplacement</span>
+    </div>`;
+    const pin=(r.node.pins||[])[r.idx];
+    return `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+      ${r.node.photoURL?`<img class="search-thumb" src="${r.node.photoURL}" onclick="goToNode('${r.node.id}')" style="cursor:pointer">`:`<div class="search-thumb-ph" onclick="goToNode('${r.node.id}')" style="cursor:pointer">${r.node.icon}</div>`}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500;font-size:13px">${r.item.name}</div>
+        <div style="font-size:11px;color:var(--muted)">
+          <span style="color:var(--accent2);cursor:pointer" onclick="goToNode('${r.node.id}')">${r.node.icon} ${r.node.name}</span>
+          · ${r.item.ref||'—'} · ${r.item.unit||'pcs'}${pin?' · 📍':''}
+        </div>
+      </div>
+      ${r.item.minQty&&r.item.qty<=r.item.minQty?`<span class="badge badge-low">bas</span>`:''}
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('${r.node.id}','${r.item.id}',-1)">−</button>
+        <span class="qty-val">${r.item.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${r.node.id}','${r.item.id}',1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function goToNode(id){
+  // open all ancestors
+  let n=nodes[id];
+  while(n){openIds.add(n.id);n=nodes[n.parentId];}
+  currentView='tree';
+  render();
+  setTimeout(()=>{
+    const el=document.getElementById('node-'+id);
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },100);
+}
+
+
+// ── Rapport / Inventaire total ────────────────────────────────────────────────
+function getNodePath(nodeId){
+  const parts=[];
+  let n=nodes[nodeId];
+  while(n){parts.unshift(n.name);n=nodes[n.parentId];}
+  return parts.join(' › ');
+}
+
+function renderRapport(){
+  // Build flat list of all items with location path
+  const rows=[];
+  Object.values(nodes).forEach(node=>{
+    const path=getNodePath(node.id);
+    (node.items||[]).forEach(item=>{
+      rows.push({item,path,node});
+    });
+  });
+  // sort by name
+  rows.sort((a,b)=>a.item.name.localeCompare(b.item.name));
+  const low=rows.filter(r=>r.item.minQty&&r.item.qty<=r.item.minQty);
+
+  return `
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:16px;font-weight:600">📋 Inventaire total</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${rows.length} référence(s) · ${rows.reduce((s,r)=>s+(r.item.qty||0),0)} articles au total</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="exportCSV()">⬇️ CSV</button>
+      <button class="btn btn-sm btn-primary" onclick="printRapport()">🖨️ Imprimer</button>
+    </div>
+  </div>
+
+  ${low.length?`<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--danger);margin-bottom:1rem">
+    ⚠️ ${low.length} article(s) en stock bas : ${low.map(r=>r.item.name).join(', ')}
+  </div>`:''}
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <div style="display:grid;grid-template-columns:1fr 80px 120px 1fr;gap:0;background:var(--bg3);padding:8px 14px;font-size:11px;font-weight:600;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px">
+      <div>Article</div><div style="text-align:center">Qté</div><div>Réf.</div><div>Emplacement</div>
+    </div>
+    ${rows.length===0?'<div class="empty">Aucun article dans l\'inventaire</div>':''}
+    ${rows.map((r,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 80px 120px 1fr;gap:0;padding:8px 14px;font-size:13px;border-top:1px solid var(--border);background:${i%2===0?'transparent':'rgba(255,255,255,.01)'};${r.item.minQty&&r.item.qty<=r.item.minQty?'border-left:3px solid var(--danger);':''}" onclick="goToNode('${r.node.id}');showView('tree')" style="cursor:pointer">
+      <div style="font-weight:500;cursor:pointer" title="Voir dans l'inventaire">${r.item.name}${r.item.minQty&&r.item.qty<=r.item.minQty?` <span class="badge badge-low">bas</span>`:''}</div>
+      <div style="text-align:center;font-family:var(--mono);color:${r.item.qty===0?'var(--danger)':r.item.minQty&&r.item.qty<=r.item.minQty?'var(--danger)':'var(--accent)'}">${r.item.qty}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${r.item.ref||'—'}</div>
+      <div style="font-size:12px;color:var(--accent2);cursor:pointer" onclick="event.stopPropagation();goToNode('${r.node.id}');showView('tree')">${r.path}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function exportCSV(){
+  const rows=[];
+  Object.values(nodes).forEach(node=>{
+    const path=getNodePath(node.id);
+    (node.items||[]).forEach(item=>{
+      rows.push([item.name, item.qty, item.unit||'pcs', item.ref||'', path]);
+    });
+  });
+  rows.sort((a,b)=>a[0].localeCompare(b[0]));
+  const header=['Article','Quantité','Unité','Référence','Emplacement'];
+  const csv=[header,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`inventaire_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('⬇️ Export CSV téléchargé');
+}
+
+function printRapport(){
+  const rows=[];
+  Object.values(nodes).forEach(node=>{
+    const path=getNodePath(node.id);
+    (node.items||[]).forEach(item=>{
+      rows.push({item,path});
+    });
+  });
+  rows.sort((a,b)=>a.item.name.localeCompare(b.item.name));
+  const date=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Inventaire stock.elec</title>
+<style>
+  body{font-family:'Segoe UI',sans-serif;padding:2rem;background:#fff;color:#111;font-size:13px}
+  h1{font-size:20px;margin-bottom:4px}
+  .sub{color:#666;font-size:12px;margin-bottom:1.5rem}
+  table{width:100%;border-collapse:collapse;margin-top:1rem}
+  th{background:#f0f0f0;padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #ddd}
+  td{padding:6px 10px;border-bottom:1px solid #eee;vertical-align:top}
+  tr:nth-child(even){background:#fafafa}
+  .low{color:#e53e3e;font-weight:600}
+  .qty{font-weight:700;text-align:center}
+  .ref{color:#666;font-size:11px}
+  .path{color:#2b7cb8;font-size:11px}
+  .warn{background:#fff5f5!important}
+  @media print{body{padding:.5rem}h1{font-size:16px}}
+</style></head><body>
+<h1>⚡ stock.elec — Inventaire total</h1>
+<div class="sub">Généré le ${date} · ${rows.length} référence(s) · ${rows.reduce((s,r)=>s+(r.item.qty||0),0)} articles</div>
+<table>
+  <thead><tr><th>Article</th><th>Réf.</th><th style="text-align:center">Qté</th><th>Unité</th><th>Emplacement</th></tr></thead>
+  <tbody>
+    ${rows.map(r=>`<tr class="${r.item.minQty&&r.item.qty<=r.item.minQty?'warn':''}">
+      <td class="${r.item.minQty&&r.item.qty<=r.item.minQty?'low':''}">${r.item.name}</td>
+      <td class="ref">${r.item.ref||'—'}</td>
+      <td class="qty ${r.item.minQty&&r.item.qty<=r.item.minQty?'low':''}">${r.item.qty}</td>
+      <td class="ref">${r.item.unit||'pcs'}</td>
+      <td class="path">${r.path}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>
+<script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script>
+</body></html>`);
+  w.document.close();
+  toast('🖨️ Impression en cours...');
+}
+
+// ── Users management ─────────────────────────────────────────────────────────
+let usersCache = [];
+
+async function renderUsers(){
+  usersCache = await loadUsers();
+  if(usersCache.length===0){
+    usersCache=[{id:'default',username:DEFAULT_USER,password:DEFAULT_PASS,role:'admin'}];
+    await saveUsers(usersCache);
+  }
+  return buildUsersHTML();
+}
+
+function buildUsersHTML(){
+  return `
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:16px;font-weight:600">👤 Utilisateurs</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${usersCache.length} compte(s)</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openAddUser()">+ Ajouter</button>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    ${usersCache.map((u,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">
+        ${u.role==='admin'?'👑':'👤'}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:14px">${u.username}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">${u.role==='admin'?'Administrateur':'Utilisateur'} · Mot de passe : ${'•'.repeat(u.password.length)}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="openEditUser(${i})">✏️</button>
+        ${u.username===currentUser()?`<span style="font-size:11px;color:var(--muted);padding:4px 8px">(vous)</span>`:`<button class="btn btn-sm btn-danger" onclick="confirmDeleteUser(${i})">✕</button>`}
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function openAddUser(){
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Nouvel utilisateur</div>
+    <div class="form-col" style="margin-bottom:10px"><label>Identifiant *</label><input id="nu-user" placeholder="ex: Jean, Tech1..."></div>
+    <div class="form-col" style="margin-bottom:10px"><label>Mot de passe *</label><input id="nu-pass" type="password" placeholder="Mot de passe"></div>
+    <div class="form-col" style="margin-bottom:14px"><label>Rôle</label>
+      <select id="nu-role">
+        <option value="user">👤 Utilisateur (lecture + modif stock)</option>
+        <option value="admin">👑 Administrateur (accès complet)</option>
+      </select>
+    </div>
+    <div id="nu-error" style="color:var(--danger);font-size:12px;min-height:18px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1" onclick="addUser()">Créer</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+  document.getElementById('nu-user').focus();
+}
+
+async function addUser(){
+  const username=document.getElementById('nu-user').value.trim();
+  const password=document.getElementById('nu-pass').value;
+  const role=document.getElementById('nu-role').value;
+  if(!username||!password){document.getElementById('nu-error').textContent='Champs obligatoires';return;}
+  if(usersCache.find(u=>u.username===username)){document.getElementById('nu-error').textContent='Identifiant déjà utilisé';return;}
+  usersCache.push({id:uid(),username,password,role});
+  await saveUsers(usersCache);
+  document.querySelector('.modal-backdrop')?.remove();
+  toast('✅ Utilisateur créé');
+  document.getElementById('vc').innerHTML = buildUsersHTML();
+}
+
+function openEditUser(idx){
+  const u=usersCache[idx];
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">✏️ Modifier "${u.username}"</div>
+    <div class="form-col" style="margin-bottom:10px"><label>Identifiant *</label><input id="eu-user" value="${u.username}"></div>
+    <div class="form-col" style="margin-bottom:10px"><label>Nouveau mot de passe</label><input id="eu-pass" type="password" placeholder="Laisser vide pour ne pas changer"></div>
+    <div class="form-col" style="margin-bottom:14px"><label>Rôle</label>
+      <select id="eu-role">
+        <option value="user" ${u.role==='user'?'selected':''}>👤 Utilisateur</option>
+        <option value="admin" ${u.role==='admin'?'selected':''}>👑 Administrateur</option>
+      </select>
+    </div>
+    <div id="eu-error" style="color:var(--danger);font-size:12px;min-height:18px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1" onclick="applyEditUser(${idx})">Enregistrer</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+  document.getElementById('eu-user').focus();
+}
+
+async function applyEditUser(idx){
+  const username=document.getElementById('eu-user').value.trim();
+  const password=document.getElementById('eu-pass').value;
+  const role=document.getElementById('eu-role').value;
+  if(!username){document.getElementById('eu-error').textContent='Identifiant obligatoire';return;}
+  const conflict=usersCache.find((u,i)=>i!==idx&&u.username===username);
+  if(conflict){document.getElementById('eu-error').textContent='Identifiant déjà utilisé';return;}
+  usersCache[idx]={...usersCache[idx],username,role};
+  if(password) usersCache[idx].password=password;
+  await saveUsers(usersCache);
+  document.querySelector('.modal-backdrop')?.remove();
+  toast('✅ Modifié');
+  document.getElementById('vc').innerHTML = buildUsersHTML();
+}
+
+async function confirmDeleteUser(idx){
+  const u=usersCache[idx];
+  if(!confirm('Supprimer "'+u.username+'" ?')) return;
+  usersCache.splice(idx,1);
+  await saveUsers(usersCache);
+  toast('🗑️ Utilisateur supprimé');
+  document.getElementById('vc').innerHTML = buildUsersHTML();
+}
+
+// ── Activity Log ─────────────────────────────────────────────────────────────
+async function addLog(action, detail){
+  try {
+    const entry = {
+      id: uid(),
+      ts: Date.now(),
+      user: currentUser()||'?',
+      action,
+      detail
+    };
+    // Store in Firestore _config/logs as array (max 500 entries)
+    const snap = await getDoc(doc(db,'_config','logs'));
+    let list = snap.exists() ? (snap.data().list||[]) : [];
+    list.unshift(entry);
+    if(list.length > 500) list = list.slice(0,500);
+    await setDoc(doc(db,'_config','logs'), {list});
+  } catch(e){ console.warn('Log error:', e); }
+}
+
+async function renderLogs(){
+  try {
+    const snap = await getDoc(doc(db,'_config','logs'));
+    const list = snap.exists() ? (snap.data().list||[]) : [];
+
+    const actionIcon = {
+      'article_ajout':'➕','article_retrait':'➖','article_suppression':'🗑️',
+      'emplacement_ajout':'📦','emplacement_suppression':'🗑️','emplacement_renommage':'✏️',
+      'emplacement_deplacement':'↕️','photo_ajout':'📷','photo_suppression':'🗑️',
+      'qty_plus':'➕','qty_moins':'➖'
+    };
+
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:16px;font-weight:600">📜 Historique</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${list.length} action(s) enregistrée(s)</div>
+      </div>
+      ${currentRole()==='admin'?`<button class="btn btn-sm btn-danger" onclick="clearLogs()">🗑️ Vider</button>`:''}
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      ${list.length===0?'<div class="empty">Aucune activité enregistrée</div>':''}
+      ${list.map(e=>{
+        const d = new Date(e.ts);
+        const dateStr = d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+        const timeStr = d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+        const icon = actionIcon[e.action]||'•';
+        return `
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)">
+          <span style="font-size:16px;flex-shrink:0;margin-top:2px">${icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:500">${e.detail}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)">
+              👤 ${e.user} · ${dateStr} à ${timeStr}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  } catch(e){
+    return '<div class="empty">Erreur de chargement</div>';
+  }
+}
+
+async function clearLogs(){
+  if(!confirm('Vider tout l\'historique ?')) return;
+  await setDoc(doc(db,'_config','logs'), {list:[]});
+  toast('🗑️ Historique vidé');
+  showView('logs');
+}
+
+// ── QR list ───────────────────────────────────────────────────────────────────
+// selected QR ids for batch print
+let qrSelected = new Set();
+let qrCopies = {}; // nodeId -> number of copies
+
+function renderQRList(){
+  const all=Object.values(nodes).sort((a,b)=>(a.order||0)-(b.order||0));
+  const baseUrl = window.location.href.split('?')[0];
+  const perRow = [2,3,4];
+  return `
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
+    <div>
+      <div style="font-size:16px;font-weight:600">📷 QR Codes</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${all.length} emplacement(s) · <span id="qr-sel-count">${qrSelected.size}</span> sélectionné(s)</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="qrSelectAll()">Tout sélectionner</button>
+      <button class="btn btn-sm" onclick="qrSelectNone()">Tout désélectionner</button>
+      <select id="qr-per-row" style="width:auto;padding:6px 10px;font-size:13px">
+        <option value="2">2 par ligne</option>
+        <option value="3" selected>3 par ligne</option>
+        <option value="4">4 par ligne</option>
+      </select>
+      <select id="qr-size" style="width:auto;padding:6px 10px;font-size:13px">
+        <option value="120">Petit (120px)</option>
+        <option value="160" selected>Moyen (160px)</option>
+        <option value="220">Grand (220px)</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="printQRBatch()" ${qrSelected.size===0?'disabled style="opacity:.5;cursor:not-allowed"':''}>🖨️ Imprimer (${qrSelected.size})</button>
+    </div>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    ${all.length===0?'<div class="empty">Aucun emplacement</div>':''}
+    ${all.map(node=>{
+      const sel = qrSelected.has(node.id);
+      return `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;background:${sel?'rgba(74,222,128,.06)':''};transition:background .15s" onclick="toggleQRSelect('${node.id}')">
+      <input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleQRSelect('${node.id}')" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      ${node.photoURL?`<img class="search-thumb" src="${node.photoURL}" loading="lazy">`:`<div class="search-thumb-ph">${node.icon}</div>`}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500">${node.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${getNodePath(node.id)} · ${(node.items||[]).length} article(s)</div>
+      </div>
+      ${sel?`<div style="display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
+        <button class="qty-btn" onclick="changeQRCopies('${node.id}',-1)">−</button>
+        <input id="copies-${node.id}" type="number" min="1" max="99" value="${qrCopies[node.id]||1}" onchange="setQRCopies('${node.id}',this.value)" style="width:42px;text-align:center;padding:4px 6px;font-size:13px">
+        <button class="qty-btn" onclick="changeQRCopies('${node.id}',1)">+</button>
+        <span style="font-size:11px;color:var(--muted);margin-left:2px">ex.</span>
+      </div>`:''}
+      <button class="btn btn-sm" onclick="event.stopPropagation();openQR('${node.id}')" title="Aperçu QR">👁</button>
+    </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function toggleQRSelect(id){
+  if(qrSelected.has(id)){
+    qrSelected.delete(id);
+    delete qrCopies[id];
+  } else {
+    qrSelected.add(id);
+    qrCopies[id] = qrCopies[id]||1;
+  }
+  document.getElementById('vc').innerHTML = renderQRList();
+}
+
+function setQRCopies(id, val){
+  const n = Math.max(1, Math.min(99, parseInt(val)||1));
+  qrCopies[id] = n;
+  const inp = document.getElementById('copies-'+id);
+  if(inp) inp.value = n;
+}
+
+function changeQRCopies(id, delta){
+  const current = qrCopies[id]||1;
+  setQRCopies(id, current + delta);
+}
+
+function qrSelectAll(){
+  Object.keys(nodes).forEach(id=>{
+    qrSelected.add(id);
+    if(!qrCopies[id]) qrCopies[id]=1;
+  });
+  document.getElementById('vc').innerHTML = renderQRList();
+}
+
+function qrSelectNone(){
+  qrSelected.clear();
+  qrCopies = {};
+  document.getElementById('vc').innerHTML = renderQRList();
+}
+
+function printQRBatch(){
+  if(qrSelected.size===0) return;
+  const perRow = parseInt(document.getElementById('qr-per-row')?.value||3);
+  const size   = parseInt(document.getElementById('qr-size')?.value||160);
+  const baseUrl = window.location.href.split('?')[0];
+  const selected = Object.values(nodes)
+    .filter(n=>qrSelected.has(n.id))
+    .sort((a,b)=>getNodePath(a.id).localeCompare(getNodePath(b.id)));
+
+  const cellW = Math.floor(100/perRow);
+  const date = new Date().toLocaleDateString('fr-FR');
+
+  const cells = selected.flatMap(node=>{
+    const url = baseUrl+'?node='+node.id;
+    const path = getNodePath(node.id);
+    const copies = qrCopies[node.id]||1;
+    const cell = `<div class="qr-cell">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size*2}x${size*2}&data=${encodeURIComponent(url)}&margin=6" width="${size}" height="${size}">
+      <div class="qr-name">${node.icon} ${node.name}</div>
+      ${path!==node.name?`<div class="qr-path">${path}</div>`:''}
+
+    </div>`;
+    return Array(copies).fill(cell);
+  }).join('');
+
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>QR Codes — stock.elec</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#fff;color:#111;padding:1cm}
+  h1{font-size:14px;color:#666;margin-bottom:12px;border-bottom:1px solid #ddd;padding-bottom:8px}
+  .grid{display:flex;flex-wrap:wrap;gap:12px}
+  .qr-cell{width:calc(${cellW}% - 8px);border:1.5px solid #ddd;border-radius:8px;padding:12px;text-align:center;page-break-inside:avoid;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .qr-cell img{border-radius:4px;display:block}
+  .qr-name{font-size:12px;font-weight:600;margin-top:6px;word-break:break-word}
+  .qr-path{font-size:10px;color:#888;word-break:break-word}
+  @media print{
+    body{padding:.5cm}
+    @page{margin:.5cm}
+  }
+</style></head><body>
+<h1>⚡ stock.elec — QR Codes · ${selected.length} emplacement(s) · ${date}</h1>
+<div class="grid">${cells}</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),800)<\/script>
+</body></html>`);
+  w.document.close();
+  toast(`🖨️ Impression de ${selected.length} QR code(s)...`);
+}
+
+// ── QR modal ──────────────────────────────────────────────────────────────────
+function openQR(nodeId){
+  const node=nodes[nodeId];
+  const url=window.location.href.split('?')[0]+'?node='+nodeId;
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
+    <div class="modal-title">${node.icon} ${node.name}</div>
+    <div style="background:#fff;padding:14px;border-radius:8px;display:inline-block;margin:1rem 0">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&margin=8" style="display:block;border-radius:4px">
+    </div>
+    <div class="url-display">${url}</div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
+      <button class="btn btn-primary" style="flex:1" onclick="printQR('${nodeId}')">🖨️ Imprimer</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+}
+
+function printQR(nodeId){
+  const node=nodes[nodeId];
+  const url=window.location.href.split('?')[0]+'?node='+nodeId;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>QR - ${node.name}</title>
+<style>body{font-family:'Segoe UI',sans-serif;text-align:center;padding:2rem;background:#fff}
+.box{border:2px solid #111;padding:1.5rem 2rem;border-radius:12px;display:inline-block}
+h2{font-size:22px;margin:0 0 4px}p{color:#666;font-size:13px;margin-bottom:1rem}
+.url{font-family:monospace;font-size:10px;color:#999;margin-top:12px;word-break:break-all}
+</style></head><body><div class="box">
+<h2>${node.icon} ${node.name}</h2><p>Scanner pour voir l'inventaire</p>
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}&margin=8">
+<div class="url">${url}</div></div>
+<script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script></body></html>`);
+  w.document.close();
+}
+
+// ── Add node modal ────────────────────────────────────────────────────────────
+function openAddNode(parentId){
+  const parent=parentId?nodes[parentId]:null;
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">${parent?`Sous-emplacement dans "${parent.name}"`:'Nouvel emplacement'}</div>
+    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="nn-name" placeholder="ex: Étagère A, Étage 2, Carton rouge..."></div>
+    <div class="form-col" style="margin-bottom:12px"><label>Type</label>
+      <select id="nn-type">${Object.keys(ICONS).map(k=>`<option value="${k}">${ICONS[k]} ${k.charAt(0).toUpperCase()+k.slice(1)}</option>`).join('')}</select>
+    </div>
+    <div class="form-col" style="margin-bottom:10px"><label>Photo (optionnel)</label>
+      <div class="photo-zone">
+        <input type="file" id="nn-photo" accept="image/*" capture="environment">
+        <div style="font-size:24px">📷</div>
+        <p style="color:var(--muted);font-size:12px;margin-top:4px">Prendre / choisir une photo</p>
+      </div>
+      <div id="nn-preview"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1" onclick="addNode('${parentId||''}')">Créer</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+  document.getElementById('nn-name').focus();
+  document.getElementById('nn-photo').addEventListener('change',function(){
+    const f=this.files[0];if(!f)return;
+    document.getElementById('nn-preview').innerHTML=`<img src="${URL.createObjectURL(f)}" class="photo-preview">`;
+  });
+}
+
+async function addNode(parentId){
+  const name=document.getElementById('nn-name').value.trim();
+  const type=document.getElementById('nn-type').value;
+  if(!name)return;
+  const id=uid();
+  let photoURL='';
+  const pf=document.getElementById('nn-photo')?.files[0];
+  document.querySelector('.modal-backdrop')?.remove();
+  if(pf){toast('📷 Compression...');photoURL=await compressPhoto(pf);}
+  const node={id,name,icon:ICONS[type],type,parentId:parentId||null,items:[],pins:[],photoURL,order:Date.now()};
+  await saveNode(node);
+  openIds.add(id);
+  if(parentId)openIds.add(parentId);
+  addLog('emplacement_ajout', parentId ? `Ajout "${name}" dans "${nodes[parentId]?.name}"` : `Ajout emplacement "${name}"`);
+  toast('✅ Créé !');
+}
+
+// ── Add item modal ────────────────────────────────────────────────────────────
+function openAddItem(nodeId){
+  const node=nodes[nodeId];
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Article dans "${node.name}"</div>
+    <div class="form-col" style="margin-bottom:10px"><label>Nom *</label><input id="ai-name" placeholder="ex: Arduino Uno, Relais 5V..."></div>
+    <div class="form-row">
+      <div class="form-col"><label>Référence</label><input id="ai-ref" placeholder="ARD-UNO"></div>
+      <div class="form-col"><label>Unité</label><input id="ai-unit" value="pcs" placeholder="pcs, m..."></div>
+    </div>
+    <div class="form-row">
+      <div class="form-col"><label>Quantité</label><input id="ai-qty" type="number" value="1" min="0"></div>
+      <div class="form-col"><label>Seuil alerte</label><input id="ai-min" type="number" placeholder="0" min="0"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1" onclick="addItem('${nodeId}')">Ajouter</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+  document.getElementById('ai-name').focus();
+}
+
+async function addItem(nodeId){
+  const name=document.getElementById('ai-name').value.trim();
+  if(!name)return;
+  const node=nodes[nodeId];
+  const items=[...(node.items||[])];
+  const existing=items.find(i=>i.name.toLowerCase()===name.toLowerCase());
+  if(existing){existing.qty+=parseInt(document.getElementById('ai-qty').value)||0;}
+  else{items.push({id:uid(),name,ref:document.getElementById('ai-ref').value.trim(),unit:document.getElementById('ai-unit').value.trim()||'pcs',qty:parseInt(document.getElementById('ai-qty').value)||0,minQty:parseInt(document.getElementById('ai-min').value)||0});}
+  document.querySelector('.modal-backdrop')?.remove();
+  await saveNode({...node,items});
+  const isNew = !existing;
+  addLog('article_ajout', isNew ? `Ajout "${name}" dans ${getNodePath(nodeId)}` : `+${parseInt(document.getElementById('ai-qty')?.value)||0} "${name}" dans ${getNodePath(nodeId)}`);
+  toast('✅ Article ajouté');
+}
+
+async function changeQty(nodeId,itemId,delta){
+  const node=nodes[nodeId];
+  const item=(node.items||[]).find(i=>i.id===itemId);
+  const newQty=Math.max(0,(item?.qty||0)+delta);
+  const items=(node.items||[]).map(i=>i.id===itemId?{...i,qty:newQty}:i);
+  await saveNode({...node,items});
+  if(delta!==0 && item){
+    const sign=delta>0?`+${delta}`:`${delta}`;
+    addLog(delta>0?'qty_plus':'qty_moins',`${sign} "${item.name}" dans ${getNodePath(nodeId)} (→ ${newQty} ${item.unit||'pcs'})`);
+  }
+}
+
+function confirmDeleteNode(id){
+  const node=nodes[id];
+  const childCount=Object.values(nodes).filter(n=>n.parentId===id).length;
+  const msg=childCount>0
+    ?`Supprimer "${node.name}" et tous ses sous-emplacements (${childCount}) ?`
+    :`Supprimer "${node.name}" et ses ${(node.items||[]).length} articles ?`;
+  if(!confirm(msg))return;
+  deleteNode(id).then(()=>{
+    toast('🗑️ Supprimé');
+    addLog('emplacement_suppression',`Suppression "${node.name}"`);
+  });
+}
+
+function confirmDeleteItem(nodeId,itemId){
+  const node=nodes[nodeId];
+  const item=(node.items||[]).find(i=>i.id===itemId);
+  if(!confirm(`Supprimer "${item.name}" ?`))return;
+  const items=(node.items||[]).filter(i=>i.id!==itemId);
+  saveNode({...node,items}).then(()=>{
+    toast('🗑️ Supprimé');
+    addLog('article_suppression',`Suppression "${item.name}" de ${getNodePath(nodeId)}`);
+  });
+}
+
+// ── Photo ─────────────────────────────────────────────────────────────────────
+function openEditPhoto(nodeId){
+  const node=nodes[nodeId];
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">📷 Photo — ${node.name}</div>
+    ${node.photoURL?`<img src="${node.photoURL}" class="photo-preview" style="max-height:180px">`:''}
+    <div class="photo-zone" style="margin-bottom:10px">
+      <input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload('${nodeId}',this);this.closest('.modal-backdrop').remove()">
+      <div style="font-size:24px">📷</div>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px">${node.photoURL?'Remplacer':'Choisir une photo'}</p>
+    </div>
+    ${node.photoURL?`<button class="btn btn-danger" style="width:100%;margin-bottom:8px" onclick="deletePhoto('${nodeId}');this.closest('.modal-backdrop').remove()">🗑️ Supprimer la photo</button>`:''}
+    <button class="btn" style="width:100%" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+}
+
+async function handlePhotoUpload(nodeId,input){
+  const file=input.files[0];if(!file)return;
+  const node=nodes[nodeId];
+  toast('📷 Compression...');
+  const url=await compressPhoto(file);
+  await saveNode({...node,photoURL:url,pins:[]});
+  toast('✅ Photo enregistrée !');
+}
+
+async function deletePhoto(nodeId){
+  const node=nodes[nodeId];
+  await saveNode({...node,photoURL:'',pins:[]});
+  toast('🗑️ Photo supprimée');
+}
+
+function openPhotoZoom(nodeId){
+  const node=nodes[nodeId];
+  const pins=node.pins||[];
+  const items=node.items||[];
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.style.alignItems='flex-start';m.style.paddingTop='1.5rem';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:680px">
+    <div class="modal-title">${node.icon} ${node.name}</div>
+    <div class="photo-wrapper">
+      <img src="${node.photoURL}" style="width:100%;border-radius:10px;display:block;max-height:420px;object-fit:cover">
+      ${pins.map((p,i)=>p?`<div class="pin" style="left:${p.x}%;top:${p.y}%">${i+1}</div>`:``).join('')}
+    </div>
+    ${pins.filter(Boolean).length?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1rem">
+      ${pins.map((p,i)=>p?`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+        <span style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</span>
+        <div style="flex:1;font-size:13px">${p.label}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">${items[i]?.qty||0} ${items[i]?.unit||'pcs'}</div>
+      </div>`:``).join('')}
+    </div>`:''}
+    <button class="btn" style="width:100%" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+}
+
+function startPin(nodeId,itemIdx){
+  const node=nodes[nodeId];
+  const item=(node.items||[])[itemIdx];
+  const img=document.getElementById(`pi-${nodeId}`);
+  if(!img){toast('Pas de photo !');return;}
+  toast(`📍 Cliquez sur la photo pour placer "${item.name}"`);
+  img.style.cursor='crosshair';img.style.outline='2px solid var(--accent)';img.style.borderRadius='8px';
+  const handler=async(e)=>{
+    img.removeEventListener('click',handler);
+    img.style.cursor='zoom-in';img.style.outline='';
+    const rect=img.getBoundingClientRect();
+    const x=parseFloat(((e.clientX-rect.left)/rect.width*100).toFixed(1));
+    const y=parseFloat(((e.clientY-rect.top)/rect.height*100).toFixed(1));
+    const pins=[...(node.pins||[])];
+    while(pins.length<=itemIdx)pins.push(null);
+    pins[itemIdx]={x,y,label:item.name};
+    await saveNode({...node,pins});
+    toast(`✅ "${item.name}" placé !`);
+  };
+  img.addEventListener('click',handler);
+}
+
+function showPinDetail(nodeId,pinIdx){
+  const node=nodes[nodeId];
+  const pin=(node.pins||[])[pinIdx];
+  const item=(node.items||[])[pinIdx];
+  if(!pin||!item)return;
+  const m=document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML=`
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:300px">
+    <div class="modal-title">📍 ${pin.label}</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Réf : <span style="color:var(--text)">${item.ref||'—'}</span></div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Qté : <span style="color:var(--accent);font-family:var(--mono)">${item.qty} ${item.unit||'pcs'}</span></div>
+    <div class="qty-ctrl" style="justify-content:center;margin-bottom:1rem">
+      <button class="qty-btn" onclick="changeQty('${nodeId}','${item.id}',-1)">−</button>
+      <span class="qty-val" style="font-size:18px">${item.qty}</span>
+      <button class="qty-btn" onclick="changeQty('${nodeId}','${item.id}',1)">+</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
+      <button class="btn btn-danger" style="flex:1" onclick="removePin('${nodeId}',${pinIdx});this.closest('.modal-backdrop').remove()">Suppr. pin</button>
+    </div>
+  </div>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+}
+
+async function removePin(nodeId,idx){
+  const node=nodes[nodeId];
+  const pins=[...(node.pins||[])];
+  pins[idx]=null;
+  await saveNode({...node,pins});
+}
+
+
+// ── Edit node ─────────────────────────────────────────────────────────────────
+function openEditNode(nodeId){
+  const node = nodes[nodeId];
+  const m = document.createElement('div');
+  m.className = 'modal-backdrop';
+  m.innerHTML = `
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">✏️ Modifier "${node.name}"</div>
+    <div class="form-col" style="margin-bottom:10px"><label>Nom</label><input id="en-name" value="${node.name}"></div>
+    <div class="form-col" style="margin-bottom:14px"><label>Type</label>
+      <select id="en-type">${Object.keys(ICONS).map(k=>`<option value="${k}" ${k===node.type?'selected':''}>${ICONS[k]} ${k.charAt(0).toUpperCase()+k.slice(1)}</option>`).join('')}</select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1" onclick="applyEditNode('${nodeId}')">Enregistrer</button>
+    </div>
+  </div>`;
+  m.onclick = ()=>m.remove();
+  document.body.appendChild(m);
+  const inp = document.getElementById('en-name');
+  inp.focus(); inp.select();
+}
+
+async function applyEditNode(nodeId){
+  const name = document.getElementById('en-name').value.trim();
+  const type = document.getElementById('en-type').value;
+  if(!name) return;
+  const node = nodes[nodeId];
+  document.querySelector('.modal-backdrop')?.remove();
+  const oldName = node.name;
+  await saveNode({...node, name, type, icon: ICONS[type]});
+  if(oldName !== name) addLog('emplacement_renommage', `"${oldName}" renommé en "${name}"`);
+  toast('✅ Modifié !');
+}
+
+// ── QR param on load ──────────────────────────────────────────────────────────
+function checkQRParam(){
+  const nodeId=new URLSearchParams(window.location.search).get('node');
+  if(nodeId) goToNode(nodeId);
+}
+
+
+// ── Drag & Drop ──────────────────────────────────────────────────────────────
+let dragId = null;
+let autoOpenTimer = null;
+let autoOpenTarget = null;
+let currentDragOver = null;
+
+function onDragStart(e, id){
+  dragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  setTimeout(()=>{
+    const el = document.getElementById('node-'+id);
+    if(el) el.classList.add('dragging');
+    const rootZone = document.getElementById('drop-root');
+    if(rootZone) rootZone.classList.add('visible');
+  }, 0);
+}
+
+function onDragEnd(e){
+  clearTimeout(autoOpenTimer);
+  autoOpenTarget = null;
+  currentDragOver = null;
+  if(dragId){
+    const el = document.getElementById('node-'+dragId);
+    if(el) el.classList.remove('dragging');
+  }
+  document.querySelectorAll('.node-header.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  const rootZone = document.getElementById('drop-root');
+  if(rootZone){ rootZone.classList.remove('drag-over','visible'); }
+  dragId = null;
+}
+
+function onDragOver(e, targetId){
+  if(!dragId || dragId === targetId) return;
+  if(isDescendant(targetId, dragId)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.dataTransfer.dropEffect = 'move';
+  if(currentDragOver !== targetId){
+    document.querySelectorAll('.node-header.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    currentDragOver = targetId;
+    e.currentTarget.classList.add('drag-over');
+    // auto-open closed nodes
+    if(autoOpenTarget !== targetId){
+      clearTimeout(autoOpenTimer);
+      autoOpenTarget = targetId;
+      if(!openIds.has(targetId)){
+        autoOpenTimer = setTimeout(()=>{ openIds.add(targetId); render(); }, 700);
+      }
+    }
+  }
+}
+
+function onDragLeave(e, targetId){
+  e.stopPropagation();
+  if(!e.currentTarget.contains(e.relatedTarget)){
+    e.currentTarget.classList.remove('drag-over');
+    if(currentDragOver === targetId) currentDragOver = null;
+    clearTimeout(autoOpenTimer);
+    autoOpenTarget = null;
+  }
+}
+
+function onDragOverRoot(e){
+  if(!dragId) return;
+  e.preventDefault();
+  document.querySelectorAll('.node-header.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  document.getElementById('drop-root')?.classList.add('drag-over');
+}
+
+function onDragLeaveRoot(e){
+  document.getElementById('drop-root')?.classList.remove('drag-over');
+}
+
+async function onDrop(e, targetId){
+  e.preventDefault();
+  e.stopPropagation();
+  clearTimeout(autoOpenTimer);
+  if(!dragId || dragId === targetId) return;
+  if(isDescendant(targetId, dragId)) return;
+  document.querySelectorAll('.node-header.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  const node = nodes[dragId];
+  const targetName = nodes[targetId]?.name;
+  if(!node) return;
+  openIds.add(targetId);
+  await saveNode({...node, parentId: targetId, order: Date.now()});
+  toast(`✅ "${node.name}" déplacé dans "${targetName}"`);
+  dragId = null;
+}
+
+async function onDropRoot(e){
+  e.preventDefault();
+  clearTimeout(autoOpenTimer);
+  if(!dragId) return;
+  document.getElementById('drop-root')?.classList.remove('drag-over');
+  const node = nodes[dragId];
+  if(!node) return;
+  await saveNode({...node, parentId: null, order: Date.now()});
+  addLog('emplacement_deplacement', `"${node.name}" déplacé à la racine`);
+  toast(`✅ "${node.name}" déplacé à la racine`);
+  dragId = null;
+}
+
+function isDescendant(potentialChild, ancestorId){
+  let n = nodes[potentialChild];
+  while(n && n.parentId){
+    if(n.parentId === ancestorId) return true;
+    n = nodes[n.parentId];
+  }
+  return false;
+}
+
+Object.assign(window,{
+  showView,toggleNode,openAddNode,addNode,openAddItem,addItem,
+  changeQty,confirmDeleteNode,confirmDeleteItem,
+  openQR,printQR,doSearch,goToNode,
+  openEditPhoto,handlePhotoUpload,deletePhoto,openPhotoZoom,
+  startPin,showPinDetail,removePin,
+  onDragStart,onDragEnd,onDragOver,onDragLeave,onDragOverRoot,onDragLeaveRoot,onDrop,onDropRoot,
+  openEditNode,applyEditNode,
+  exportCSV,printRapport,renderRapport,
+  toggleQRSelect,qrSelectAll,qrSelectNone,printQRBatch,setQRCopies,changeQRCopies,
+  doLogin,doLogout,
+  openAddUser,addUser,openEditUser,applyEditUser,confirmDeleteUser,
+  clearLogs
+});
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+initFirebase(); // initialise db immédiatement (avant login)
+if(isAuthed()){
+  bootApp();
+} else {
+  document.getElementById('root').innerHTML = '';
+  showLogin();
+}
+</script>
+</body>
+</html>
