@@ -435,7 +435,7 @@ function renderRapport(){
     <div style="display:grid;grid-template-columns:1fr 80px 120px 1fr;gap:0;background:var(--bg3);padding:8px 14px;font-size:11px;font-weight:600;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px">
       <div>Article</div><div style="text-align:center">Qté</div><div>Réf.</div><div>Emplacement</div>
     </div>
-    ${rows.length===0?`<div class="empty">Aucun article dans l'inventaire</div>`:''}
+    ${rows.length===0?'<div class="empty">Aucun article dans l\'inventaire</div>':''}
     ${rows.map((r,i)=>`
     <div style="display:grid;grid-template-columns:1fr 80px 120px 1fr;gap:0;padding:8px 14px;font-size:13px;border-top:1px solid var(--border);background:${i%2===0?'transparent':'rgba(255,255,255,.01)'};${r.item.minQty&&r.item.qty<=r.item.minQty?'border-left:3px solid var(--danger);':''}" onclick="goToNode('${r.node.id}');showView('tree')" style="cursor:pointer">
       <div style="font-weight:500;cursor:pointer" title="Voir dans l'inventaire">${r.item.name}${r.item.minQty&&r.item.qty<=r.item.minQty?` <span class="badge badge-low">bas</span>`:''}</div>
@@ -513,23 +513,142 @@ function printRapport(){
 }
 
 // ── QR list ───────────────────────────────────────────────────────────────────
+// selected QR ids for batch print
+let qrSelected = new Set();
+let qrCopies = {}; // nodeId -> number of copies
+
 function renderQRList(){
   const all=Object.values(nodes).sort((a,b)=>(a.order||0)-(b.order||0));
+  const baseUrl = window.location.href.split('?')[0];
+  const perRow = [2,3,4];
   return `
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
-    <div style="font-size:16px;font-weight:600;margin-bottom:.75rem">📷 QR Codes</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Scanner → accès direct à l'emplacement dans l'inventaire.</p>
-    ${all.map(node=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openQR('${node.id}')">
-      ${node.photoURL?`<img class="search-thumb" src="${node.photoURL}" loading="lazy">`:`<div class="search-thumb-ph">${node.icon}</div>`}
-      <div style="flex:1">
-        <div style="font-weight:500">${node.name}</div>
-        <div style="font-size:11px;color:var(--muted)">${node.type} · ${(node.items||[]).length} article(s)</div>
-      </div>
-      <span class="tag">QR →</span>
-    </div>`).join('')}
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
+    <div>
+      <div style="font-size:16px;font-weight:600">📷 QR Codes</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${all.length} emplacement(s) · <span id="qr-sel-count">${qrSelected.size}</span> sélectionné(s)</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="qrSelectAll()">Tout sélectionner</button>
+      <button class="btn btn-sm" onclick="qrSelectNone()">Tout désélectionner</button>
+      <select id="qr-per-row" style="width:auto;padding:6px 10px;font-size:13px">
+        <option value="2">2 par ligne</option>
+        <option value="3" selected>3 par ligne</option>
+        <option value="4">4 par ligne</option>
+      </select>
+      <select id="qr-size" style="width:auto;padding:6px 10px;font-size:13px">
+        <option value="120">Petit (120px)</option>
+        <option value="160" selected>Moyen (160px)</option>
+        <option value="220">Grand (220px)</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="printQRBatch()" ${qrSelected.size===0?'disabled style="opacity:.5;cursor:not-allowed"':''}>🖨️ Imprimer (${qrSelected.size})</button>
+    </div>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
     ${all.length===0?'<div class="empty">Aucun emplacement</div>':''}
+    ${all.map(node=>{
+      const sel = qrSelected.has(node.id);
+      return `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;background:${sel?'rgba(74,222,128,.06)':''};transition:background .15s" onclick="toggleQRSelect('${node.id}')">
+      <input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleQRSelect('${node.id}')" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      ${node.photoURL?`<img class="search-thumb" src="${node.photoURL}" loading="lazy">`:`<div class="search-thumb-ph">${node.icon}</div>`}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500">${node.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${getNodePath(node.id)} · ${(node.items||[]).length} article(s)</div>
+      </div>
+      ${sel?`<div style="display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
+        <button class="qty-btn" onclick="setQRCopies('${node.id}',(qrCopies['${node.id}']||1)-1);document.getElementById('copies-${node.id}').value=Math.max(1,(qrCopies['${node.id}']||1)-1);qrCopies['${node.id}']=Math.max(1,(qrCopies['${node.id}']||1)-1)">−</button>
+        <input id="copies-${node.id}" type="number" min="1" max="99" value="${qrCopies[node.id]||1}" onchange="setQRCopies('${node.id}',this.value)" style="width:42px;text-align:center;padding:4px 6px;font-size:13px">
+        <button class="qty-btn" onclick="setQRCopies('${node.id}',(qrCopies['${node.id}']||1)+1);document.getElementById('copies-${node.id}').value=(qrCopies['${node.id}']||1)+1;qrCopies['${node.id}']=(qrCopies['${node.id}']||1)+1">+</button>
+        <span style="font-size:11px;color:var(--muted);margin-left:2px">ex.</span>
+      </div>`:''}
+      <button class="btn btn-sm" onclick="event.stopPropagation();openQR('${node.id}')" title="Aperçu QR">👁</button>
+    </div>`;
+    }).join('')}
   </div>`;
+}
+
+function toggleQRSelect(id){
+  if(qrSelected.has(id)){
+    qrSelected.delete(id);
+    delete qrCopies[id];
+  } else {
+    qrSelected.add(id);
+    qrCopies[id] = qrCopies[id]||1;
+  }
+  document.getElementById('vc').innerHTML = renderQRList();
+}
+
+function setQRCopies(id, val){
+  const n = Math.max(1, Math.min(99, parseInt(val)||1));
+  qrCopies[id] = n;
+  // update displayed value without full re-render
+  const inp = document.getElementById('copies-'+id);
+  if(inp) inp.value = n;
+}
+
+function qrSelectAll(){
+  Object.keys(nodes).forEach(id=>{
+    qrSelected.add(id);
+    if(!qrCopies[id]) qrCopies[id]=1;
+  });
+  document.getElementById('vc').innerHTML = renderQRList();
+}
+
+function qrSelectNone(){
+  qrSelected.clear();
+  qrCopies = {};
+  document.getElementById('vc').innerHTML = renderQRList();
+}
+
+function printQRBatch(){
+  if(qrSelected.size===0) return;
+  const perRow = parseInt(document.getElementById('qr-per-row')?.value||3);
+  const size   = parseInt(document.getElementById('qr-size')?.value||160);
+  const baseUrl = window.location.href.split('?')[0];
+  const selected = Object.values(nodes)
+    .filter(n=>qrSelected.has(n.id))
+    .sort((a,b)=>getNodePath(a.id).localeCompare(getNodePath(b.id)));
+
+  const cellW = Math.floor(100/perRow);
+  const date = new Date().toLocaleDateString('fr-FR');
+
+  const cells = selected.flatMap(node=>{
+    const url = baseUrl+'?node='+node.id;
+    const path = getNodePath(node.id);
+    const copies = qrCopies[node.id]||1;
+    const cell = `<div class="qr-cell">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size*2}x${size*2}&data=${encodeURIComponent(url)}&margin=6" width="${size}" height="${size}">
+      <div class="qr-name">${node.icon} ${node.name}</div>
+      ${path!==node.name?`<div class="qr-path">${path}</div>`:''}
+      <div class="qr-url">${url}</div>
+    </div>`;
+    return Array(copies).fill(cell);
+  }).join('');
+
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>QR Codes — stock.elec</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#fff;color:#111;padding:1cm}
+  h1{font-size:14px;color:#666;margin-bottom:12px;border-bottom:1px solid #ddd;padding-bottom:8px}
+  .grid{display:flex;flex-wrap:wrap;gap:12px}
+  .qr-cell{width:calc(${cellW}% - 8px);border:1.5px solid #ddd;border-radius:8px;padding:12px;text-align:center;page-break-inside:avoid;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .qr-cell img{border-radius:4px;display:block}
+  .qr-name{font-size:12px;font-weight:600;margin-top:6px;word-break:break-word}
+  .qr-path{font-size:10px;color:#888;word-break:break-word}
+  .qr-url{font-size:9px;color:#aaa;word-break:break-all;margin-top:2px}
+  @media print{
+    body{padding:.5cm}
+    @page{margin:.5cm}
+  }
+</style></head><body>
+<h1>⚡ stock.elec — QR Codes · ${selected.length} emplacement(s) · ${date}</h1>
+<div class="grid">${cells}</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),800)<\/script>
+</body></html>`);
+  w.document.close();
+  toast(`🖨️ Impression de ${selected.length} QR code(s)...`);
 }
 
 // ── QR modal ──────────────────────────────────────────────────────────────────
@@ -963,7 +1082,8 @@ Object.assign(window,{
   startPin,showPinDetail,removePin,
   onDragStart,onDragEnd,onDragOver,onDragLeave,onDragOverRoot,onDragLeaveRoot,onDrop,onDropRoot,
   openEditNode,applyEditNode,
-  exportCSV,printRapport,renderRapport
+  exportCSV,printRapport,renderRapport,
+  toggleQRSelect,qrSelectAll,qrSelectNone,printQRBatch,setQRCopies
 });
 
 initFirebase();
