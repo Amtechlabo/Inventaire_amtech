@@ -260,13 +260,17 @@ function showLogin(){
 }
 
 function bootApp(){
-  initFirebase();
+  startSync();
   setTimeout(checkQRParam, 800);
 }
 
 function initFirebase(){
+  // Initialise db uniquement — pas de sync encore (avant login)
   const app = initializeApp(FIREBASE_CONFIG);
   db = getFirestore(app);
+}
+
+function startSync(){
   setSyncStatus('loading');
   onSnapshot(collection(db,'nodes'), snap => {
     nodes = {};
@@ -1444,10 +1448,10 @@ Object.assign(window,{
 });
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
+initFirebase(); // initialise db immédiatement (avant login)
 if(isAuthed()){
   bootApp();
 } else {
-  // Show loading briefly then login
   document.getElementById('root').innerHTML = '';
   showLogin();
 }
