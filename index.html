@@ -314,8 +314,13 @@ function compressPhoto(file){
 async function showView(v){
   currentView=v;
   if(v==='users'){
-    render(); // render shell first
+    render();
     const html = await renderUsers();
+    const vc = document.getElementById('vc');
+    if(vc) vc.innerHTML = html;
+  } else if(v==='logs'){
+    render();
+    const html = await renderLogs();
     const vc = document.getElementById('vc');
     if(vc) vc.innerHTML = html;
   } else {
@@ -339,6 +344,7 @@ function render(){
       <button class="btn ${currentView==='qrlist'?'active':''}" onclick="showView('qrlist')">📷 QR Codes</button>
       <button class="btn ${currentView==='rapport'?'active':''}" onclick="showView('rapport')">📋 Rapport</button>
       ${currentRole()==='admin'?`<button class="btn ${currentView==='users'?'active':''}" onclick="showView('users')">👤 Utilisateurs</button>`:''}
+      <button class="btn ${currentView==='logs'?'active':''}" onclick="showView('logs')">📜 Historique</button>
     </div>
   </div>
   <div id="vc">${renderView(allItems,lowCount)}</div>`;
@@ -351,6 +357,7 @@ function renderView(allItems,lowCount){
   if(currentView==='qrlist') return renderQRList();
   if(currentView==='rapport') return renderRapport();
   if(currentView==='users')  return '<div style="text-align:center;padding:2rem"><span class="spinner"></span> Chargement...</div>';
+  if(currentView==='logs')   return '<div style="text-align:center;padding:2rem"><span class="spinner"></span> Chargement...</div>';
   return '';
 }
 
@@ -768,6 +775,76 @@ async function confirmDeleteUser(idx){
   document.getElementById('vc').innerHTML = buildUsersHTML();
 }
 
+// ── Activity Log ─────────────────────────────────────────────────────────────
+async function addLog(action, detail){
+  try {
+    const entry = {
+      id: uid(),
+      ts: Date.now(),
+      user: currentUser()||'?',
+      action,
+      detail
+    };
+    // Store in Firestore _config/logs as array (max 500 entries)
+    const snap = await getDoc(doc(db,'_config','logs'));
+    let list = snap.exists() ? (snap.data().list||[]) : [];
+    list.unshift(entry);
+    if(list.length > 500) list = list.slice(0,500);
+    await setDoc(doc(db,'_config','logs'), {list});
+  } catch(e){ console.warn('Log error:', e); }
+}
+
+async function renderLogs(){
+  try {
+    const snap = await getDoc(doc(db,'_config','logs'));
+    const list = snap.exists() ? (snap.data().list||[]) : [];
+
+    const actionIcon = {
+      'article_ajout':'➕','article_retrait':'➖','article_suppression':'🗑️',
+      'emplacement_ajout':'📦','emplacement_suppression':'🗑️','emplacement_renommage':'✏️',
+      'emplacement_deplacement':'↕️','photo_ajout':'📷','photo_suppression':'🗑️',
+      'qty_plus':'➕','qty_moins':'➖'
+    };
+
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:16px;font-weight:600">📜 Historique</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${list.length} action(s) enregistrée(s)</div>
+      </div>
+      ${currentRole()==='admin'?`<button class="btn btn-sm btn-danger" onclick="clearLogs()">🗑️ Vider</button>`:''}
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      ${list.length===0?'<div class="empty">Aucune activité enregistrée</div>':''}
+      ${list.map(e=>{
+        const d = new Date(e.ts);
+        const dateStr = d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+        const timeStr = d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+        const icon = actionIcon[e.action]||'•';
+        return `
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)">
+          <span style="font-size:16px;flex-shrink:0;margin-top:2px">${icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:500">${e.detail}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)">
+              👤 ${e.user} · ${dateStr} à ${timeStr}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  } catch(e){
+    return '<div class="empty">Erreur de chargement</div>';
+  }
+}
+
+async function clearLogs(){
+  if(!confirm('Vider tout l'historique ?')) return;
+  await setDoc(doc(db,'_config','logs'), {list:[]});
+  toast('🗑️ Historique vidé');
+  showView('logs');
+}
+
 // ── QR list ───────────────────────────────────────────────────────────────────
 // selected QR ids for batch print
 let qrSelected = new Set();
@@ -996,6 +1073,7 @@ async function addNode(parentId){
   await saveNode(node);
   openIds.add(id);
   if(parentId)openIds.add(parentId);
+  addLog('emplacement_ajout', parentId ? `Ajout "${name}" dans "${nodes[parentId]?.name}"` : `Ajout emplacement "${name}"`);
   toast('✅ Créé !');
 }
 
@@ -1036,13 +1114,21 @@ async function addItem(nodeId){
   else{items.push({id:uid(),name,ref:document.getElementById('ai-ref').value.trim(),unit:document.getElementById('ai-unit').value.trim()||'pcs',qty:parseInt(document.getElementById('ai-qty').value)||0,minQty:parseInt(document.getElementById('ai-min').value)||0});}
   document.querySelector('.modal-backdrop')?.remove();
   await saveNode({...node,items});
+  const isNew = !existing;
+  addLog('article_ajout', isNew ? `Ajout "${name}" dans ${getNodePath(nodeId)}` : `+${parseInt(document.getElementById('ai-qty')?.value)||0} "${name}" dans ${getNodePath(nodeId)}`);
   toast('✅ Article ajouté');
 }
 
 async function changeQty(nodeId,itemId,delta){
   const node=nodes[nodeId];
-  const items=(node.items||[]).map(i=>i.id===itemId?{...i,qty:Math.max(0,i.qty+delta)}:i);
+  const item=(node.items||[]).find(i=>i.id===itemId);
+  const newQty=Math.max(0,(item?.qty||0)+delta);
+  const items=(node.items||[]).map(i=>i.id===itemId?{...i,qty:newQty}:i);
   await saveNode({...node,items});
+  if(delta!==0 && item){
+    const sign=delta>0?`+${delta}`:`${delta}`;
+    addLog(delta>0?'qty_plus':'qty_moins',`${sign} "${item.name}" dans ${getNodePath(nodeId)} (→ ${newQty} ${item.unit||'pcs'})`);
+  }
 }
 
 function confirmDeleteNode(id){
@@ -1052,7 +1138,10 @@ function confirmDeleteNode(id){
     ?`Supprimer "${node.name}" et tous ses sous-emplacements (${childCount}) ?`
     :`Supprimer "${node.name}" et ses ${(node.items||[]).length} articles ?`;
   if(!confirm(msg))return;
-  deleteNode(id).then(()=>toast('🗑️ Supprimé'));
+  deleteNode(id).then(()=>{
+    toast('🗑️ Supprimé');
+    addLog('emplacement_suppression',`Suppression "${node.name}"`);
+  });
 }
 
 function confirmDeleteItem(nodeId,itemId){
@@ -1060,7 +1149,10 @@ function confirmDeleteItem(nodeId,itemId){
   const item=(node.items||[]).find(i=>i.id===itemId);
   if(!confirm(`Supprimer "${item.name}" ?`))return;
   const items=(node.items||[]).filter(i=>i.id!==itemId);
-  saveNode({...node,items}).then(()=>toast('🗑️ Supprimé'));
+  saveNode({...node,items}).then(()=>{
+    toast('🗑️ Supprimé');
+    addLog('article_suppression',`Suppression "${item.name}" de ${getNodePath(nodeId)}`);
+  });
 }
 
 // ── Photo ─────────────────────────────────────────────────────────────────────
@@ -1211,7 +1303,9 @@ async function applyEditNode(nodeId){
   if(!name) return;
   const node = nodes[nodeId];
   document.querySelector('.modal-backdrop')?.remove();
+  const oldName = node.name;
   await saveNode({...node, name, type, icon: ICONS[type]});
+  if(oldName !== name) addLog('emplacement_renommage', `"${oldName}" renommé en "${name}"`);
   toast('✅ Modifié !');
 }
 
@@ -1320,6 +1414,7 @@ async function onDropRoot(e){
   const node = nodes[dragId];
   if(!node) return;
   await saveNode({...node, parentId: null, order: Date.now()});
+  addLog('emplacement_deplacement', `"${node.name}" déplacé à la racine`);
   toast(`✅ "${node.name}" déplacé à la racine`);
   dragId = null;
 }
@@ -1344,7 +1439,8 @@ Object.assign(window,{
   exportCSV,printRapport,renderRapport,
   toggleQRSelect,qrSelectAll,qrSelectNone,printQRBatch,setQRCopies,changeQRCopies,
   doLogin,doLogout,
-  openAddUser,addUser,openEditUser,applyEditUser,confirmDeleteUser
+  openAddUser,addUser,openEditUser,applyEditUser,confirmDeleteUser,
+  clearLogs
 });
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
