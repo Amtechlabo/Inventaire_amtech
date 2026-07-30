@@ -711,7 +711,7 @@ function printQRBatch(){
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size*2}x${size*2}&data=${encodeURIComponent(url)}&margin=6" width="${size}" height="${size}">
       <div class="qr-name">${node.icon} ${node.name}</div>
       ${path!==node.name?`<div class="qr-path">${path}</div>`:''}
-      <div class="qr-url">${url}</div>
+
     </div>`;
     return Array(copies).fill(cell);
   }).join('');
@@ -727,7 +727,6 @@ function printQRBatch(){
   .qr-cell img{border-radius:4px;display:block}
   .qr-name{font-size:12px;font-weight:600;margin-top:6px;word-break:break-word}
   .qr-path{font-size:10px;color:#888;word-break:break-word}
-  .qr-url{font-size:9px;color:#aaa;word-break:break-all;margin-top:2px}
   @media print{
     body{padding:.5cm}
     @page{margin:.5cm}
