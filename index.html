@@ -14,6 +14,11 @@
     appId:             "1:902045233030:web:fd1f92493d506fc25c0607"
   };
 </script>
+<script>
+  const AUTH_USER = "Amtech";
+  const AUTH_PASS = "Labo2026!";
+  const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24h en ms
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -122,6 +127,14 @@ label{font-size:12px;color:var(--muted);font-weight:500}
   .header{flex-direction:column;align-items:flex-start}
   .node-meta{display:none}
 }
+/* ── Login ── */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:340px;text-align:center}
+.login-logo{font-family:var(--mono);font-size:26px;color:var(--accent);margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:2rem}
+.login-error{color:var(--danger);font-size:13px;min-height:20px;margin-bottom:10px}
+.login-field{margin-bottom:12px;text-align:left}
+.login-field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500}
 </style>
 </head>
 <body>
@@ -151,6 +164,59 @@ let db;
 let nodes = {};
 let openIds = new Set();
 let currentView = 'tree';
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function isAuthed(){
+  const exp = localStorage.getItem('se_auth_exp');
+  return exp && Date.now() < parseInt(exp);
+}
+
+function doLogin(){
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(user === AUTH_USER && pass === AUTH_PASS){
+    localStorage.setItem('se_auth_exp', Date.now() + SESSION_DURATION);
+    document.getElementById('login-screen').remove();
+    bootApp();
+  } else {
+    document.getElementById('login-error').textContent = 'Identifiant ou mot de passe incorrect';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+function doLogout(){
+  localStorage.removeItem('se_auth_exp');
+  location.reload();
+}
+
+function showLogin(){
+  const div = document.createElement('div');
+  div.id = 'login-screen';
+  div.className = 'login-wrap';
+  div.innerHTML = `
+  <div class="login-box">
+    <div class="login-logo">stock<span style="color:var(--muted)">.</span>elec</div>
+    <div class="login-sub">⚡ Inventaire électronique</div>
+    <div class="login-field">
+      <label>Identifiant</label>
+      <input id="login-user" type="text" placeholder="Identifiant" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+    </div>
+    <div class="login-field">
+      <label>Mot de passe</label>
+      <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button class="btn btn-primary" style="width:100%;padding:10px" onclick="doLogin()">Accéder →</button>
+  </div>`;
+  document.body.appendChild(div);
+  document.getElementById('login-user').focus();
+}
+
+function bootApp(){
+  initFirebase();
+  setTimeout(checkQRParam, 800);
+}
 
 function initFirebase(){
   const app = initializeApp(FIREBASE_CONFIG);
@@ -207,7 +273,10 @@ function render(){
   const lowCount = Object.values(nodes).reduce((s,n)=>s+(n.items||[]).filter(i=>i.minQty&&i.qty<=i.minQty).length,0);
   root.innerHTML=`
   <div class="header">
-    <div class="logo">stock<span>.</span>elec <span class="sync-dot" id="sync-dot"></span></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="logo">stock<span>.</span>elec <span class="sync-dot" id="sync-dot"></span></div>
+      <button class="btn btn-sm" onclick="doLogout()" title="Se déconnecter" style="font-size:11px;padding:4px 10px;color:var(--muted)">🔒 Déco</button>
+    </div>
     <div class="views">
       <button class="btn ${currentView==='tree'?'active':''}" onclick="showView('tree')">📦 Inventaire</button>
       <button class="btn ${currentView==='search'?'active':''}" onclick="showView('search')">🔍 Recherche</button>
@@ -1087,11 +1156,18 @@ Object.assign(window,{
   onDragStart,onDragEnd,onDragOver,onDragLeave,onDragOverRoot,onDragLeaveRoot,onDrop,onDropRoot,
   openEditNode,applyEditNode,
   exportCSV,printRapport,renderRapport,
-  toggleQRSelect,qrSelectAll,qrSelectNone,printQRBatch,setQRCopies,changeQRCopies
+  toggleQRSelect,qrSelectAll,qrSelectNone,printQRBatch,setQRCopies,changeQRCopies,
+  doLogin,doLogout
 });
 
-initFirebase();
-setTimeout(checkQRParam, 800);
+// ── Boot ─────────────────────────────────────────────────────────────────────
+if(isAuthed()){
+  bootApp();
+} else {
+  // Show loading briefly then login
+  document.getElementById('root').innerHTML = '';
+  showLogin();
+}
 </script>
 </body>
 </html>
