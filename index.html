@@ -557,9 +557,9 @@ function renderQRList(){
         <div style="font-size:11px;color:var(--muted)">${getNodePath(node.id)} · ${(node.items||[]).length} article(s)</div>
       </div>
       ${sel?`<div style="display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
-        <button class="qty-btn" onclick="setQRCopies('${node.id}',(qrCopies['${node.id}']||1)-1);document.getElementById('copies-${node.id}').value=Math.max(1,(qrCopies['${node.id}']||1)-1);qrCopies['${node.id}']=Math.max(1,(qrCopies['${node.id}']||1)-1)">−</button>
+        <button class="qty-btn" onclick="changeQRCopies('${node.id}',-1)">−</button>
         <input id="copies-${node.id}" type="number" min="1" max="99" value="${qrCopies[node.id]||1}" onchange="setQRCopies('${node.id}',this.value)" style="width:42px;text-align:center;padding:4px 6px;font-size:13px">
-        <button class="qty-btn" onclick="setQRCopies('${node.id}',(qrCopies['${node.id}']||1)+1);document.getElementById('copies-${node.id}').value=(qrCopies['${node.id}']||1)+1;qrCopies['${node.id}']=(qrCopies['${node.id}']||1)+1">+</button>
+        <button class="qty-btn" onclick="changeQRCopies('${node.id}',1)">+</button>
         <span style="font-size:11px;color:var(--muted);margin-left:2px">ex.</span>
       </div>`:''}
       <button class="btn btn-sm" onclick="event.stopPropagation();openQR('${node.id}')" title="Aperçu QR">👁</button>
@@ -582,9 +582,13 @@ function toggleQRSelect(id){
 function setQRCopies(id, val){
   const n = Math.max(1, Math.min(99, parseInt(val)||1));
   qrCopies[id] = n;
-  // update displayed value without full re-render
   const inp = document.getElementById('copies-'+id);
   if(inp) inp.value = n;
+}
+
+function changeQRCopies(id, delta){
+  const current = qrCopies[id]||1;
+  setQRCopies(id, current + delta);
 }
 
 function qrSelectAll(){
@@ -1083,7 +1087,7 @@ Object.assign(window,{
   onDragStart,onDragEnd,onDragOver,onDragLeave,onDragOverRoot,onDragLeaveRoot,onDrop,onDropRoot,
   openEditNode,applyEditNode,
   exportCSV,printRapport,renderRapport,
-  toggleQRSelect,qrSelectAll,qrSelectNone,printQRBatch,setQRCopies
+  toggleQRSelect,qrSelectAll,qrSelectNone,printQRBatch,setQRCopies,changeQRCopies
 });
 
 initFirebase();
